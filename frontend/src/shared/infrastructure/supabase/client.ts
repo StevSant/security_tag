@@ -3,8 +3,8 @@ import { createBrowserClient } from "@supabase/ssr";
 let client: ReturnType<typeof createBrowserClient> | null = null;
 
 export function createClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseUrl = process.env.NEXT_SUPABASE_PROJECT_URL;
+  const supabaseAnonKey = process.env.NEXT_SUPABASE_ANON_PUBLIC_KEY;
 
   // Durante el build, las variables pueden no estar disponibles
   if (!supabaseUrl || !supabaseAnonKey) {

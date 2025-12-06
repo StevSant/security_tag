@@ -2,7 +2,23 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ShieldIcon } from "@/shared/ui/icons";
+import { useAuth } from "@/shared/infrastructure/auth";
+
+// Hotel Icon Component
+function HotelIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16" />
+      <path d="M1 21h22" />
+      <path d="M9 7h1" />
+      <path d="M9 11h1" />
+      <path d="M9 15h1" />
+      <path d="M14 7h1" />
+      <path d="M14 11h1" />
+      <path d="M14 15h1" />
+    </svg>
+  );
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,21 +44,20 @@ export default function LoginPage() {
     setIsSubmitting(true);
     setError("");
 
-    // Mock login - en producción usar Supabase Auth
-    await new Promise((r) => setTimeout(r, 1000));
-
-    if (email && password) {
-      // Redirigir basado en email (mock)
-      if (email.includes("admin")) {
-        router.push("/dashboard/admin");
-      } else {
-        router.push("/dashboard/staff");
-      }
-    } else {
-      setError("Please fill in all fields");
+    if (!email || !password) {
+      setError("Por favor completa todos los campos");
+      setIsSubmitting(false);
+      return;
     }
 
-    setIsLoading(false);
+    // Autenticación real con Supabase
+    const result = await signIn(email, password);
+
+    if (result.error) {
+      setError(translateError(result.error));
+      setIsSubmitting(false);
+    }
+    // Si no hay error, el useEffect redirigirá automáticamente
   };
 
   // Traducir errores de Supabase
@@ -303,19 +318,19 @@ export default function LoginPage() {
       <div className="login-card">
         <div className="login-header">
           <div className="login-logo">
-            <ShieldIcon />
+            <HotelIcon />
           </div>
-          <h1 className="login-title">CyberSec Control</h1>
-          <p className="login-subtitle">Sign in to your account</p>
+          <h1 className="login-title">HotelGuard</h1>
+          <p className="login-subtitle">Sistema de Verificación de Rondas</p>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">Email Address</label>
+            <label className="form-label">Correo Electrónico</label>
             <input
               type="email"
               className="form-input"
-              placeholder="you@company.com"
+              placeholder="tu@hotel.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isSubmitting}
@@ -324,7 +339,7 @@ export default function LoginPage() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <label className="form-label">Contraseña</label>
             <input
               type="password"
               className="form-input"
@@ -342,37 +357,37 @@ export default function LoginPage() {
             {isSubmitting ? (
               <>
                 <span className="loading-spinner" />
-                <span>Signing in...</span>
+                <span>Iniciando sesión...</span>
               </>
             ) : (
-              <span>Sign In</span>
+              <span>Iniciar Sesión</span>
             )}
           </button>
         </form>
 
         <div className="demo-hint">
-          <p>Demo accounts available:</p>
+          <p>Cuentas de prueba disponibles:</p>
           <div className="demo-accounts">
             <button
               type="button"
               className="demo-btn"
               onClick={() => {
-                setEmail("staff@company.com");
+                setEmail("boton@hotel.com");
                 setPassword("demo123");
               }}
             >
-              <span className="demo-icon">👤</span>
-              <span>Staff</span>
+              <span className="demo-icon">🛎️</span>
+              <span>Botón</span>
             </button>
             <button
               type="button"
               className="demo-btn"
               onClick={() => {
-                setEmail("admin@company.com");
+                setEmail("admin@hotel.com");
                 setPassword("demo123");
               }}
             >
-              <span className="demo-icon">🛡️</span>
+              <span className="demo-icon">👔</span>
               <span>Admin</span>
             </button>
           </div>

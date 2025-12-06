@@ -251,3 +251,43 @@ export async function getStaffUsers(): Promise<
     };
   }
 }
+
+/**
+ * Obtiene los detalles de una ubicación incluyendo el código QR/NFC
+ */
+export async function getLocationDetails(
+  locationId: string
+): Promise<QueryResult<{ id: string; name: string; nfcTagId: string; floor: number | null }>> {
+  try {
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from("locations")
+      .select("id, name, nfc_tag_id, floor")
+      .eq("id", locationId)
+      .single();
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    if (!data) {
+      return { success: false, error: "Ubicación no encontrada" };
+    }
+
+    return {
+      success: true,
+      data: {
+        id: data.id,
+        name: data.name,
+        nfcTagId: data.nfc_tag_id,
+        floor: data.floor,
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error desconocido",
+    };
+  }
+}
