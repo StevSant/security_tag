@@ -15,19 +15,19 @@ export function AuthGuard({
   requiredRole,
   fallbackUrl = "/login",
 }: AuthGuardProps) {
-  const { user, role, loading } = useAuth();
+  const { isAuthenticated, isLoading, role } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (loading) return;
+    if (isLoading) return;
 
-    // No autenticado -> redirigir a login
-    if (!user) {
+    // No autenticado -> login
+    if (!isAuthenticated) {
       router.replace(fallbackUrl);
       return;
     }
 
-    // Rol requerido pero no coincide
+    // Verificar rol si es requerido
     if (requiredRole && role !== requiredRole) {
       // Staff intentando acceder a admin -> redirigir a su dashboard
       if (role === "staff") {
@@ -38,19 +38,22 @@ export function AuthGuard({
         router.replace(fallbackUrl);
       }
     }
-  }, [user, role, loading, requiredRole, fallbackUrl, router]);
+  }, [isAuthenticated, isLoading, role, requiredRole, router, fallbackUrl]);
 
   // Mostrar loading mientras verifica
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="auth-loading">
         <style jsx>{`
           .auth-loading {
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             background: linear-gradient(135deg, #0a0a0f 0%, #0f172a 100%);
+            color: #f1f5f9;
+            font-family: 'JetBrains Mono', monospace;
           }
           .spinner {
             width: 48px;
@@ -59,26 +62,26 @@ export function AuthGuard({
             border-top-color: #059669;
             border-radius: 50%;
             animation: spin 1s linear infinite;
+            margin-bottom: 16px;
           }
           @keyframes spin {
             to { transform: rotate(360deg); }
           }
         `}</style>
         <div className="spinner" />
+        <p>Verificando sesión...</p>
       </div>
     );
   }
 
-  // No autorizado -> no renderizar nada (ya redirigiendo)
-  if (!user) {
+  // No mostrar contenido si no está autenticado o no tiene el rol correcto
+  if (!isAuthenticated) {
     return null;
   }
 
-  // Rol requerido y no coincide -> no renderizar
   if (requiredRole && role !== requiredRole) {
     return null;
   }
 
   return <>{children}</>;
 }
-

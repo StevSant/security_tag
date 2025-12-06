@@ -4,59 +4,63 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/shared/infrastructure/auth";
 
-// Deshabilitar prerendering - usa Supabase
-export const dynamic = "force-dynamic";
-
 export default function LoginPage() {
   const router = useRouter();
-  const { signIn, user, role, loading: authLoading } = useAuth();
+  const { signIn, isAuthenticated, role, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   // Redirigir si ya está autenticado
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!isLoading && isAuthenticated) {
       if (role === "admin") {
         router.replace("/dashboard/admin");
       } else {
         router.replace("/dashboard/staff");
       }
     }
-  }, [user, role, authLoading, router]);
+  }, [isAuthenticated, isLoading, role, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSubmitting(true);
     setError("");
+
+    if (!email || !password) {
+      setError("Por favor completa todos los campos");
+      setIsSubmitting(false);
+      return;
+    }
 
     const result = await signIn(email, password);
     
     if (result.error) {
       setError(translateError(result.error));
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
-    // Si no hay error, el useEffect redirigirá automáticamente
+    // La redirección se maneja en el useEffect
   };
 
-  // Traducir errores comunes de Supabase
+  // Traducir errores de Supabase
   const translateError = (error: string): string => {
-    const translations: Record<string, string> = {
-      "Invalid login credentials": "Credenciales inválidas",
+    const errorMap: Record<string, string> = {
+      "Invalid login credentials": "Credenciales incorrectas",
       "Email not confirmed": "Email no confirmado",
       "User not found": "Usuario no encontrado",
-      "Invalid email or password": "Email o contraseña incorrectos",
+      "Too many requests": "Demasiados intentos. Espera un momento.",
     };
-    return translations[error] || error;
+    return errorMap[error] || error;
   };
 
   // Mostrar loading mientras verifica sesión
-  if (authLoading) {
+  if (isLoading) {
     return (
       <div className="login-page">
         <style jsx>{`
           .login-page {
+            font-family: 'JetBrains Mono', monospace;
             min-height: 100vh;
             background: linear-gradient(135deg, #0a0a0f 0%, #0f172a 50%, #1e1b4b 100%);
             display: flex;
@@ -229,26 +233,29 @@ export default function LoginPage() {
           to { transform: rotate(360deg); }
         }
 
-        .help-text {
+        .info-box {
           margin-top: 24px;
-          padding-top: 24px;
-          border-top: 1px solid #334155;
+          padding: 16px;
+          background: rgba(59, 130, 246, 0.1);
+          border: 1px solid rgba(59, 130, 246, 0.2);
+          border-radius: 10px;
+        }
+
+        .info-box p {
+          font-size: 12px;
+          color: #94a3b8;
+          margin: 0 0 8px 0;
           text-align: center;
         }
 
-        .help-text p {
-          font-size: 12px;
+        .info-box code {
+          display: block;
+          background: #0f172a;
+          padding: 8px 12px;
+          border-radius: 6px;
+          font-size: 11px;
           color: #64748b;
-          margin: 0;
-        }
-
-        .help-text a {
-          color: #10b981;
-          text-decoration: none;
-        }
-
-        .help-text a:hover {
-          text-decoration: underline;
+          margin-top: 8px;
         }
       `}</style>
 
@@ -268,8 +275,8 @@ export default function LoginPage() {
               placeholder="correo@hotel.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
-              required
+              disabled={isSubmitting}
+              autoComplete="email"
             />
           </div>
 
@@ -281,15 +288,15 @@ export default function LoginPage() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
-              required
+              disabled={isSubmitting}
+              autoComplete="current-password"
             />
           </div>
 
-          {error && <div className="error-message">⚠️ {error}</div>}
+          {error && <div className="error-message">{error}</div>}
 
-          <button type="submit" className="submit-btn" disabled={isLoading}>
-            {isLoading ? (
+          <button type="submit" className="submit-btn" disabled={isSubmitting}>
+            {isSubmitting ? (
               <>
                 <span className="loading-spinner" />
                 <span>Ingresando...</span>
@@ -300,8 +307,11 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="help-text">
-          <p>¿Necesitas ayuda? Contacta a tu administrador</p>
+        <div className="info-box">
+          <p>💡 Contacta al administrador para obtener tus credenciales</p>
+          <code>
+            El admin debe crear tu cuenta desde el panel de administración
+          </code>
         </div>
       </div>
     </div>

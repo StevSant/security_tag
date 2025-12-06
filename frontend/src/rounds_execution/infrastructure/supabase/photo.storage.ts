@@ -74,7 +74,7 @@ export async function uploadPhoto(
     // Obtener URL pública o firmada
     const { data: urlData } = await supabase.storage
       .from(BUCKET_NAME)
-      .createSignedUrl(data.path, 60 * 60 * 24 * 7); // 7 días
+      .createSignedUrl(data.path, 3600 * 24 * 7); // 7 días
 
     return {
       success: true,
@@ -86,30 +86,5 @@ export async function uploadPhoto(
       success: false,
       error: error instanceof Error ? error.message : "Error desconocido",
     };
-  }
-}
-
-/**
- * Obtiene URL firmada de una foto existente
- */
-export async function getSignedPhotoUrl(
-  path: string,
-  expiresIn: number = 3600
-): Promise<string | null> {
-  try {
-    const supabase = createClient();
-    const { data, error } = await supabase.storage
-      .from(BUCKET_NAME)
-      .createSignedUrl(path, expiresIn);
-
-    if (error) {
-      console.error("Error getting signed URL:", error);
-      return null;
-    }
-
-    return data.signedUrl;
-  } catch (error) {
-    console.error("Error in getSignedPhotoUrl:", error);
-    return null;
   }
 }

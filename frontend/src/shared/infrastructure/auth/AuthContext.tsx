@@ -1,8 +1,15 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  type ReactNode,
+} from "react";
 import { createClient } from "@/shared/infrastructure/supabase/client";
-import type { User, Session, SupabaseClient } from "@supabase/supabase-js";
+import type { User, Session } from "@supabase/supabase-js";
 
 export type UserRole = "admin" | "staff" | null;
 
@@ -10,7 +17,8 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   role: UserRole;
-  loading: boolean;
+  isLoading: boolean;
+  isAuthenticated: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
@@ -18,19 +26,13 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<UserRole>(null);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const supabase = useMemo(() => {
-    try {
-      return createClient();
-    } catch {
-      return null;
-    }
-  }, []) as SupabaseClient | null;
+  const supabase = createClient();
 
   // Extraer rol del usuario
   const extractRole = useCallback((user: User | null): UserRole => {
@@ -41,11 +43,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Inicializar sesión
   useEffect(() => {
-    if (!supabase) {
-      setLoading(false);
-      return;
-    }
-
     const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -55,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         console.error("Error initializing auth:", error);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
@@ -67,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         setRole(extractRole(session?.user ?? null));
-        setLoading(false);
+        setIsLoading(false);
       }
     );
 
@@ -76,12 +73,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [supabase, extractRole]);
 
-  // Iniciar sesión
+  // Sign In
   const signIn = async (email: string, password: string) => {
-    if (!supabase) {
-      return { error: "Supabase no configurado" };
-    }
-
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -104,36 +97,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Cerrar sesión
+  // Sign Out
   const signOut = async () => {
-    if (!supabase) return;
     await supabase.auth.signOut();
     setSession(null);
     setUser(null);
     setRole(null);
   };
 
-  // Refrescar sesión
+  // Refresh Session
   const refreshSession = async () => {
-    if (!supabase) return;
     const { data: { session } } = await supabase.auth.refreshSession();
     setSession(session);
     setUser(session?.user ?? null);
     setRole(extractRole(session?.user ?? null));
   };
 
+  const value: AuthContextType = {
+    user,
+    session,
+    role,
+    isLoading,
+    isAuthenticated: !!user,
+    signIn,
+    signOut,
+    refreshSession,
+  };
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        session,
-        role,
-        loading,
-        signIn,
-        signOut,
-        refreshSession,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
@@ -146,4 +138,3 @@ export function useAuth() {
   }
   return context;
 }
-
