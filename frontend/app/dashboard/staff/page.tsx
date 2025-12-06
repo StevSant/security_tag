@@ -29,14 +29,16 @@ export default function StaffDashboardPage() {
 
   if (selectedLocation) {
     return (
-      <div style={{ 
-        minHeight: "100vh", 
-        background: "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)",
-        padding: "20px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center"
-      }}>
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "var(--bg-secondary)",
+          padding: "40px 20px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <CheckpointForm
           locationId={selectedLocation.id}
           locationName={selectedLocation.name}
@@ -51,4 +53,3 @@ export default function StaffDashboardPage() {
 
   return <StaffProgress onSelectLocation={handleSelectLocation} />;
 }
-

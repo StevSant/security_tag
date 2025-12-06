@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { submitCheckin } from "../application/submit-checkin.usecase";
+import { CheckCircleIcon, AlertTriangleIcon } from "@/shared/ui/icons";
 
 interface CheckpointFormProps {
   locationId: string;
@@ -57,27 +58,27 @@ export function CheckpointForm({
   // Validar formulario
   const validateForm = (): string[] => {
     const formErrors: string[] = [];
-    
+
     if (!proofPhoto) {
-      formErrors.push("La foto de inspección es obligatoria");
+      formErrors.push("Inspection photo is required");
     }
-    
+
     if (hasIncident) {
       if (!damagePhoto) {
-        formErrors.push("La foto del daño es obligatoria cuando hay incidencia");
+        formErrors.push("Damage photo is required when reporting an incident");
       }
       if (!damageDescription.trim()) {
-        formErrors.push("La descripción del daño es obligatoria cuando hay incidencia");
+        formErrors.push("Damage description is required when reporting an incident");
       }
     }
-    
+
     return formErrors;
   };
 
   // Enviar formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const formErrors = validateForm();
     if (formErrors.length > 0) {
       setErrors(formErrors);
@@ -95,7 +96,7 @@ export function CheckpointForm({
       hasIncident,
       damagePhotoUri: hasIncident ? damagePhoto! : undefined,
       damageDescription: hasIncident ? damageDescription : undefined,
-      nfcScanVerified: true, // Asumimos que el NFC ya fue verificado
+      nfcScanVerified: true,
     });
 
     if (result.success) {
@@ -103,7 +104,7 @@ export function CheckpointForm({
       onSuccess?.();
     } else {
       setSubmitStatus("error");
-      setErrors(result.errors || ["Error desconocido"]);
+      setErrors(result.errors || ["Unknown error occurred"]);
     }
   };
 
@@ -123,41 +124,40 @@ export function CheckpointForm({
     <div className="checkpoint-form">
       <style jsx>{`
         .checkpoint-form {
-          font-family: 'JetBrains Mono', 'Fira Code', monospace;
-          background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-          border: 1px solid #334155;
+          background: var(--bg-card);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
-          padding: 24px;
-          max-width: 420px;
+          padding: 32px;
+          max-width: 480px;
           margin: 0 auto;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+          box-shadow: var(--shadow-lg);
         }
 
         .form-header {
           text-align: center;
-          margin-bottom: 24px;
-          padding-bottom: 16px;
-          border-bottom: 1px solid #334155;
+          margin-bottom: 32px;
+          padding-bottom: 24px;
+          border-bottom: 1px solid var(--border-color);
         }
 
         .location-badge {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-          color: white;
+          background: rgba(16, 185, 129, 0.1);
+          color: var(--color-primary);
           padding: 8px 16px;
           border-radius: 20px;
           font-size: 12px;
           font-weight: 600;
           text-transform: uppercase;
           letter-spacing: 0.5px;
-          margin-bottom: 12px;
+          margin-bottom: 16px;
         }
 
         .location-name {
-          color: #f1f5f9;
-          font-size: 20px;
+          color: var(--text-primary);
+          font-size: 22px;
           font-weight: 700;
           margin: 0;
         }
@@ -170,20 +170,19 @@ export function CheckpointForm({
           display: flex;
           align-items: center;
           gap: 8px;
-          color: #94a3b8;
-          font-size: 12px;
+          color: var(--text-secondary);
+          font-size: 13px;
           font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 1px;
           margin-bottom: 12px;
         }
 
         .required-badge {
-          background: #ef4444;
+          background: var(--color-danger);
           color: white;
-          padding: 2px 6px;
+          padding: 2px 8px;
           border-radius: 4px;
           font-size: 10px;
+          font-weight: 700;
         }
 
         .photo-capture-btn {
@@ -194,22 +193,22 @@ export function CheckpointForm({
           align-items: center;
           justify-content: center;
           gap: 12px;
-          background: #1e293b;
-          border: 2px dashed #475569;
+          background: var(--bg-secondary);
+          border: 2px dashed var(--border-color);
           border-radius: 12px;
           cursor: pointer;
           transition: all 0.2s ease;
-          color: #94a3b8;
+          color: var(--text-muted);
         }
 
         .photo-capture-btn:hover {
-          border-color: #059669;
-          background: #1e293b;
+          border-color: var(--color-primary);
+          background: var(--bg-hover);
         }
 
         .photo-capture-btn.has-photo {
           border-style: solid;
-          border-color: #059669;
+          border-color: var(--color-primary);
           padding: 0;
           overflow: hidden;
         }
@@ -237,10 +236,10 @@ export function CheckpointForm({
           display: flex;
           align-items: center;
           justify-content: space-between;
-          background: #1e293b;
-          border: 1px solid #334155;
+          background: var(--bg-secondary);
+          border: 1px solid var(--border-color);
           border-radius: 12px;
-          padding: 16px;
+          padding: 16px 20px;
           margin-bottom: 24px;
         }
 
@@ -248,30 +247,37 @@ export function CheckpointForm({
           display: flex;
           align-items: center;
           gap: 12px;
-          color: #f1f5f9;
+          color: var(--text-primary);
           font-weight: 500;
         }
 
         .incident-icon {
-          font-size: 24px;
+          width: 24px;
+          height: 24px;
+          color: var(--color-warning);
+        }
+
+        .incident-icon :global(svg) {
+          width: 100%;
+          height: 100%;
         }
 
         .switch {
           position: relative;
-          width: 56px;
+          width: 52px;
           height: 28px;
-          background: #334155;
+          background: var(--border-color);
           border-radius: 14px;
           cursor: pointer;
           transition: background 0.2s;
         }
 
         .switch.active {
-          background: #dc2626;
+          background: var(--color-danger);
         }
 
         .switch::after {
-          content: '';
+          content: "";
           position: absolute;
           top: 2px;
           left: 2px;
@@ -280,16 +286,17 @@ export function CheckpointForm({
           background: white;
           border-radius: 50%;
           transition: transform 0.2s;
+          box-shadow: var(--shadow-sm);
         }
 
         .switch.active::after {
-          transform: translateX(28px);
+          transform: translateX(24px);
         }
 
         .damage-section {
           animation: slideDown 0.3s ease;
-          background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(153, 27, 27, 0.1) 100%);
-          border: 1px solid rgba(220, 38, 38, 0.3);
+          background: rgba(239, 68, 68, 0.05);
+          border: 1px solid rgba(239, 68, 68, 0.2);
           border-radius: 12px;
           padding: 20px;
           margin-bottom: 24px;
@@ -310,7 +317,7 @@ export function CheckpointForm({
           display: flex;
           align-items: center;
           gap: 8px;
-          color: #fca5a5;
+          color: var(--color-danger);
           font-size: 14px;
           font-weight: 600;
           margin-bottom: 16px;
@@ -319,11 +326,11 @@ export function CheckpointForm({
         .damage-textarea {
           width: 100%;
           min-height: 100px;
-          background: #0f172a;
-          border: 1px solid #475569;
+          background: var(--bg-card);
+          border: 1px solid var(--border-color);
           border-radius: 8px;
           padding: 12px;
-          color: #f1f5f9;
+          color: var(--text-primary);
           font-family: inherit;
           font-size: 14px;
           resize: vertical;
@@ -332,23 +339,23 @@ export function CheckpointForm({
 
         .damage-textarea:focus {
           outline: none;
-          border-color: #dc2626;
+          border-color: var(--color-danger);
         }
 
         .damage-textarea::placeholder {
-          color: #64748b;
+          color: var(--text-muted);
         }
 
         .errors-container {
-          background: rgba(220, 38, 38, 0.1);
-          border: 1px solid rgba(220, 38, 38, 0.3);
+          background: rgba(239, 68, 68, 0.1);
+          border: 1px solid rgba(239, 68, 68, 0.2);
           border-radius: 8px;
-          padding: 12px;
+          padding: 16px;
           margin-bottom: 20px;
         }
 
         .error-item {
-          color: #fca5a5;
+          color: var(--color-danger);
           font-size: 13px;
           display: flex;
           align-items: center;
@@ -374,13 +381,17 @@ export function CheckpointForm({
         }
 
         .btn-primary {
-          background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+          background: linear-gradient(
+            135deg,
+            var(--color-primary) 0%,
+            var(--color-primary-dark) 100%
+          );
           color: white;
         }
 
         .btn-primary:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 10px 20px rgba(5, 150, 105, 0.3);
+          transform: translateY(-1px);
+          box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
         }
 
         .btn-primary:disabled {
@@ -389,12 +400,13 @@ export function CheckpointForm({
         }
 
         .btn-secondary {
-          background: #334155;
-          color: #94a3b8;
+          background: var(--bg-secondary);
+          color: var(--text-secondary);
+          border: 1px solid var(--border-color);
         }
 
         .btn-secondary:hover {
-          background: #475569;
+          background: var(--bg-hover);
         }
 
         .loading-spinner {
@@ -416,36 +428,53 @@ export function CheckpointForm({
 
         .success-message {
           text-align: center;
-          padding: 40px 20px;
+          padding: 48px 24px;
         }
 
         .success-icon {
-          font-size: 64px;
-          margin-bottom: 16px;
+          width: 72px;
+          height: 72px;
+          background: rgba(16, 185, 129, 0.1);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 20px;
+          color: var(--color-success);
+        }
+
+        .success-icon :global(svg) {
+          width: 36px;
+          height: 36px;
         }
 
         .success-title {
-          color: #10b981;
+          color: var(--color-success);
           font-size: 20px;
           font-weight: 700;
-          margin-bottom: 8px;
+          margin: 0 0 8px 0;
         }
 
         .success-subtitle {
-          color: #94a3b8;
+          color: var(--text-muted);
           font-size: 14px;
+          margin: 0;
         }
       `}</style>
 
       {submitStatus === "success" ? (
         <div className="success-message">
-          <div className="success-icon">✅</div>
-          <h3 className="success-title">Check-in Completado</h3>
-          <p className="success-subtitle">
-            {locationName} registrado correctamente
-          </p>
-          <button className="btn btn-primary" onClick={handleReset} style={{ marginTop: 20 }}>
-            Siguiente Punto
+          <div className="success-icon">
+            <CheckCircleIcon />
+          </div>
+          <h3 className="success-title">Check-in Completed</h3>
+          <p className="success-subtitle">{locationName} recorded successfully</p>
+          <button
+            className="btn btn-primary"
+            onClick={handleReset}
+            style={{ marginTop: 24, width: "100%" }}
+          >
+            Next Checkpoint
           </button>
         </div>
       ) : (
@@ -454,7 +483,7 @@ export function CheckpointForm({
           <div className="form-header">
             <div className="location-badge">
               <span>📍</span>
-              <span>Punto de Control</span>
+              <span>Checkpoint</span>
             </div>
             <h2 className="location-name">{locationName}</h2>
           </div>
@@ -462,8 +491,8 @@ export function CheckpointForm({
           {/* Foto de Inspección (obligatoria) */}
           <div className="photo-section">
             <div className="section-label">
-              <span>📸 Foto de Inspección</span>
-              <span className="required-badge">Obligatorio</span>
+              <span>📸 Inspection Photo</span>
+              <span className="required-badge">Required</span>
             </div>
             <input
               ref={proofInputRef}
@@ -481,11 +510,11 @@ export function CheckpointForm({
               disabled={isSubmitting}
             >
               {proofPhoto ? (
-                <img src={proofPhoto} alt="Foto de inspección" />
+                <img src={proofPhoto} alt="Inspection photo" />
               ) : (
                 <>
                   <span className="camera-icon">📷</span>
-                  <span className="camera-text">Tomar foto de inspección</span>
+                  <span className="camera-text">Take inspection photo</span>
                 </>
               )}
             </button>
@@ -494,8 +523,10 @@ export function CheckpointForm({
           {/* Toggle de Incidencia */}
           <div className="incident-toggle">
             <div className="incident-label">
-              <span className="incident-icon">⚠️</span>
-              <span>Reportar Incidencia</span>
+              <div className="incident-icon">
+                <AlertTriangleIcon />
+              </div>
+              <span>Report Incident</span>
             </div>
             <div
               className={`switch ${hasIncident ? "active" : ""}`}
@@ -510,13 +541,13 @@ export function CheckpointForm({
             <div className="damage-section">
               <div className="damage-title">
                 <span>🚨</span>
-                <span>Evidencia del Daño</span>
+                <span>Incident Evidence</span>
               </div>
 
               {/* Foto de Daño */}
               <div className="section-label">
-                <span>📸 Foto del Daño</span>
-                <span className="required-badge">Obligatorio</span>
+                <span>📸 Damage Photo</span>
+                <span className="required-badge">Required</span>
               </div>
               <input
                 ref={damageInputRef}
@@ -535,11 +566,11 @@ export function CheckpointForm({
                 style={{ aspectRatio: "16/9" }}
               >
                 {damagePhoto ? (
-                  <img src={damagePhoto} alt="Foto del daño" />
+                  <img src={damagePhoto} alt="Damage photo" />
                 ) : (
                   <>
                     <span className="camera-icon">🔍</span>
-                    <span className="camera-text">Fotografiar el daño</span>
+                    <span className="camera-text">Photograph the damage</span>
                   </>
                 )}
               </button>
@@ -547,7 +578,7 @@ export function CheckpointForm({
               {/* Descripción del Daño */}
               <textarea
                 className="damage-textarea"
-                placeholder="Describe el daño o incidencia encontrada..."
+                placeholder="Describe the damage or incident found..."
                 value={damageDescription}
                 onChange={(e) => setDamageDescription(e.target.value)}
                 disabled={isSubmitting}
@@ -575,7 +606,7 @@ export function CheckpointForm({
               onClick={onCancel}
               disabled={isSubmitting}
             >
-              Cancelar
+              Cancel
             </button>
             <button
               type="submit"
@@ -585,10 +616,10 @@ export function CheckpointForm({
               {isSubmitting ? (
                 <>
                   <span className="loading-spinner" />
-                  Enviando...
+                  Submitting...
                 </>
               ) : (
-                "Confirmar Check-in"
+                "Confirm Check-in"
               )}
             </button>
           </div>
@@ -597,4 +628,3 @@ export function CheckpointForm({
     </div>
   );
 }
-

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ShieldIcon } from "@/shared/ui/icons";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,7 +18,7 @@ export default function LoginPage() {
 
     // Mock login - en producción usar Supabase Auth
     await new Promise((r) => setTimeout(r, 1000));
-    
+
     if (email && password) {
       // Redirigir basado en email (mock)
       if (email.includes("admin")) {
@@ -26,9 +27,9 @@ export default function LoginPage() {
         router.push("/dashboard/staff");
       }
     } else {
-      setError("Por favor completa todos los campos");
+      setError("Please fill in all fields");
     }
-    
+
     setIsLoading(false);
   };
 
@@ -36,9 +37,8 @@ export default function LoginPage() {
     <div className="login-page">
       <style jsx>{`
         .login-page {
-          font-family: 'JetBrains Mono', monospace;
           min-height: 100vh;
-          background: linear-gradient(135deg, #0a0a0f 0%, #0f172a 50%, #1e1b4b 100%);
+          background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f0fdfa 100%);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -47,51 +47,70 @@ export default function LoginPage() {
         }
 
         .login-page::before {
-          content: '';
+          content: "";
           position: absolute;
           top: 0;
           left: 0;
           right: 0;
           bottom: 0;
-          background: 
-            radial-gradient(circle at 30% 70%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
-            radial-gradient(circle at 70% 30%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+          background: radial-gradient(
+              circle at 20% 80%,
+              rgba(16, 185, 129, 0.08) 0%,
+              transparent 50%
+            ),
+            radial-gradient(
+              circle at 80% 20%,
+              rgba(16, 185, 129, 0.06) 0%,
+              transparent 50%
+            );
           pointer-events: none;
         }
 
         .login-card {
           position: relative;
           z-index: 1;
-          background: rgba(30, 41, 59, 0.8);
-          border: 1px solid #334155;
-          border-radius: 20px;
-          padding: 40px;
+          background: var(--bg-card);
+          border: 1px solid var(--border-color);
+          border-radius: 16px;
+          padding: 48px 40px;
           width: 100%;
-          max-width: 400px;
-          backdrop-filter: blur(10px);
+          max-width: 420px;
+          box-shadow: var(--shadow-lg);
         }
 
         .login-header {
           text-align: center;
-          margin-bottom: 32px;
+          margin-bottom: 40px;
         }
 
         .login-logo {
-          font-size: 48px;
-          margin-bottom: 12px;
+          width: 64px;
+          height: 64px;
+          background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 20px;
+          color: white;
+        }
+
+        .login-logo :global(svg) {
+          width: 36px;
+          height: 36px;
         }
 
         .login-title {
           font-size: 24px;
           font-weight: 700;
-          margin: 0;
-          color: #f1f5f9;
+          color: var(--text-primary);
+          margin: 0 0 8px 0;
         }
 
         .login-subtitle {
           font-size: 14px;
-          color: #64748b;
-          margin: 8px 0 0 0;
+          color: var(--text-muted);
+          margin: 0;
         }
 
         .form-group {
@@ -100,41 +119,40 @@ export default function LoginPage() {
 
         .form-label {
           display: block;
-          font-size: 12px;
+          font-size: 13px;
           font-weight: 600;
-          color: #94a3b8;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
+          color: var(--text-secondary);
           margin-bottom: 8px;
         }
 
         .form-input {
           width: 100%;
           padding: 14px 16px;
-          background: #0f172a;
-          border: 1px solid #334155;
+          background: var(--bg-secondary);
+          border: 1px solid var(--border-color);
           border-radius: 10px;
-          color: #f1f5f9;
+          color: var(--text-primary);
           font-family: inherit;
           font-size: 15px;
-          transition: border-color 0.2s;
+          transition: border-color 0.2s, box-shadow 0.2s;
         }
 
         .form-input:focus {
           outline: none;
-          border-color: #059669;
+          border-color: var(--color-primary);
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         }
 
         .form-input::placeholder {
-          color: #475569;
+          color: var(--text-muted);
         }
 
         .error-message {
           background: rgba(239, 68, 68, 0.1);
-          border: 1px solid rgba(239, 68, 68, 0.3);
+          border: 1px solid rgba(239, 68, 68, 0.2);
           border-radius: 8px;
-          padding: 12px;
-          color: #fca5a5;
+          padding: 12px 16px;
+          color: var(--color-danger);
           font-size: 13px;
           margin-bottom: 20px;
           text-align: center;
@@ -142,8 +160,8 @@ export default function LoginPage() {
 
         .submit-btn {
           width: 100%;
-          padding: 16px;
-          background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+          padding: 14px;
+          background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
           border: none;
           border-radius: 10px;
           color: white;
@@ -151,7 +169,7 @@ export default function LoginPage() {
           font-size: 15px;
           font-weight: 600;
           cursor: pointer;
-          transition: all 0.3s;
+          transition: all 0.2s;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -159,8 +177,8 @@ export default function LoginPage() {
         }
 
         .submit-btn:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 10px 30px rgba(5, 150, 105, 0.3);
+          transform: translateY(-1px);
+          box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
         }
 
         .submit-btn:disabled {
@@ -178,20 +196,22 @@ export default function LoginPage() {
         }
 
         @keyframes spin {
-          to { transform: rotate(360deg); }
+          to {
+            transform: rotate(360deg);
+          }
         }
 
         .demo-hint {
-          margin-top: 24px;
+          margin-top: 32px;
           padding-top: 24px;
-          border-top: 1px solid #334155;
+          border-top: 1px solid var(--border-color);
           text-align: center;
         }
 
         .demo-hint p {
           font-size: 12px;
-          color: #64748b;
-          margin: 0 0 12px 0;
+          color: var(--text-muted);
+          margin: 0 0 16px 0;
         }
 
         .demo-accounts {
@@ -201,36 +221,48 @@ export default function LoginPage() {
         }
 
         .demo-btn {
-          padding: 8px 16px;
-          background: rgba(139, 92, 246, 0.1);
-          border: 1px solid rgba(139, 92, 246, 0.3);
+          padding: 10px 20px;
+          background: var(--bg-secondary);
+          border: 1px solid var(--border-color);
           border-radius: 8px;
-          color: #a855f7;
+          color: var(--text-secondary);
           font-family: inherit;
-          font-size: 12px;
+          font-size: 13px;
+          font-weight: 500;
           cursor: pointer;
           transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          gap: 8px;
         }
 
         .demo-btn:hover {
-          background: rgba(139, 92, 246, 0.2);
+          background: var(--bg-hover);
+          border-color: var(--border-hover);
+          color: var(--text-primary);
+        }
+
+        .demo-icon {
+          font-size: 16px;
         }
       `}</style>
 
       <div className="login-card">
         <div className="login-header">
-          <div className="login-logo">🛡️</div>
-          <h1 className="login-title">NightGuard</h1>
-          <p className="login-subtitle">Ingresa a tu cuenta</p>
+          <div className="login-logo">
+            <ShieldIcon />
+          </div>
+          <h1 className="login-title">CyberSec Control</h1>
+          <p className="login-subtitle">Sign in to your account</p>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">Correo electrónico</label>
+            <label className="form-label">Email Address</label>
             <input
               type="email"
               className="form-input"
-              placeholder="correo@hotel.com"
+              placeholder="you@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
@@ -238,7 +270,7 @@ export default function LoginPage() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Contraseña</label>
+            <label className="form-label">Password</label>
             <input
               type="password"
               className="form-input"
@@ -255,36 +287,38 @@ export default function LoginPage() {
             {isLoading ? (
               <>
                 <span className="loading-spinner" />
-                <span>Ingresando...</span>
+                <span>Signing in...</span>
               </>
             ) : (
-              <span>Ingresar</span>
+              <span>Sign In</span>
             )}
           </button>
         </form>
 
         <div className="demo-hint">
-          <p>Cuentas de demostración:</p>
+          <p>Demo accounts available:</p>
           <div className="demo-accounts">
             <button
               type="button"
               className="demo-btn"
               onClick={() => {
-                setEmail("staff@hotel.com");
+                setEmail("staff@company.com");
                 setPassword("demo123");
               }}
             >
-              👤 Staff
+              <span className="demo-icon">👤</span>
+              <span>Staff</span>
             </button>
             <button
               type="button"
               className="demo-btn"
               onClick={() => {
-                setEmail("admin@hotel.com");
+                setEmail("admin@company.com");
                 setPassword("demo123");
               }}
             >
-              👁️ Admin
+              <span className="demo-icon">🛡️</span>
+              <span>Admin</span>
             </button>
           </div>
         </div>
@@ -292,4 +326,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

@@ -1,130 +1,75 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { fetchStaffProgress, fetchTodayAssignments } from "../application/get-stats.usecase";
-import type { StaffProgressData } from "../infrastructure/supabase/queries";
+import { useState } from "react";
+import { DashboardLayout } from "@/shared/ui/DashboardLayout";
+import { MetricCard } from "@/shared/ui/MetricCard";
+import { ProgressBar } from "@/shared/ui/ProgressBar";
+import { StatusBadge } from "@/shared/ui/StatusBadge";
+import {
+  CheckCircleIcon,
+  ClockIcon,
+  AlertTriangleIcon,
+  ActivityIcon,
+} from "@/shared/ui/icons";
 
 interface StaffProgressProps {
   onSelectLocation?: (locationId: string, locationName: string) => void;
 }
 
+interface Task {
+  id: string;
+  name: string;
+  location: string;
+  status: "completed" | "pending" | "in_progress";
+  time?: string;
+}
+
+const mockTasks: Task[] = [
+  { id: "1", name: "Security Patrol - Floor 1", location: "Building A", status: "completed", time: "09:30 AM" },
+  { id: "2", name: "Access Point Check", location: "Main Entrance", status: "completed", time: "10:15 AM" },
+  { id: "3", name: "CCTV System Verification", location: "Control Room", status: "in_progress" },
+  { id: "4", name: "Emergency Exit Inspection", location: "Building B", status: "pending" },
+  { id: "5", name: "Server Room Access Audit", location: "Data Center", status: "pending" },
+];
+
 export function StaffProgress({ onSelectLocation }: StaffProgressProps) {
-  const [assignments, setAssignments] = useState<Array<{ id: string; roundName: string; status: string }>>([]);
-  const [selectedAssignment, setSelectedAssignment] = useState<string | null>(null);
-  const [progress, setProgress] = useState<StaffProgressData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [tasks] = useState<Task[]>(mockTasks);
 
-  // Cargar asignaciones del día
-  useEffect(() => {
-    async function loadAssignments() {
-      const result = await fetchTodayAssignments();
-      if (result.success && result.data) {
-        setAssignments(result.data);
-        // Seleccionar la primera asignación activa
-        const active = result.data.find((a) => a.status === "in_progress") || result.data[0];
-        if (active) {
-          setSelectedAssignment(active.id);
-        }
-      } else {
-        setError(result.error || "Error cargando asignaciones");
-      }
-      setLoading(false);
+  const completedTasks = tasks.filter((t) => t.status === "completed").length;
+  const totalTasks = tasks.length;
+  const progressPercentage = Math.round((completedTasks / totalTasks) * 100);
+
+  const getStatusConfig = (status: Task["status"]) => {
+    switch (status) {
+      case "completed":
+        return { badge: "resolved" as const, icon: <CheckCircleIcon />, color: "var(--color-success)" };
+      case "in_progress":
+        return { badge: "active" as const, icon: <ActivityIcon />, color: "var(--color-warning)" };
+      case "pending":
+        return { badge: "inactive" as const, icon: <ClockIcon />, color: "var(--text-muted)" };
     }
-    loadAssignments();
-  }, []);
-
-  // Cargar progreso cuando cambia la asignación
-  useEffect(() => {
-    if (!selectedAssignment) return;
-    
-    async function loadProgress() {
-      setLoading(true);
-      const result = await fetchStaffProgress(selectedAssignment!);
-      if (result.success && result.data) {
-        setProgress(result.data);
-      } else {
-        setError(result.error || "Error cargando progreso");
-      }
-      setLoading(false);
-    }
-    loadProgress();
-  }, [selectedAssignment]);
-
-  const getStatusColor = (percentage: number) => {
-    if (percentage >= 80) return "#10b981";
-    if (percentage >= 50) return "#f59e0b";
-    return "#ef4444";
   };
 
   return (
-    <div className="staff-progress">
+    <DashboardLayout title="My Tasks" subtitle="Daily security checkpoint progress">
       <style jsx>{`
-        .staff-progress {
-          font-family: 'JetBrains Mono', 'Fira Code', monospace;
-          background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-          min-height: 100vh;
-          padding: 20px;
-          color: #f1f5f9;
-        }
-
-        .header {
-          text-align: center;
-          margin-bottom: 32px;
-        }
-
-        .header-title {
-          font-size: 24px;
-          font-weight: 700;
-          margin: 0 0 8px 0;
-          background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-
-        .header-subtitle {
-          color: #64748b;
-          font-size: 14px;
-          margin: 0;
-        }
-
-        .assignment-selector {
+        .staff-content {
           display: flex;
-          gap: 12px;
-          margin-bottom: 24px;
-          overflow-x: auto;
-          padding-bottom: 8px;
+          flex-direction: column;
+          gap: 24px;
         }
 
-        .assignment-tab {
-          flex-shrink: 0;
-          padding: 12px 20px;
-          background: #1e293b;
-          border: 1px solid #334155;
-          border-radius: 10px;
-          color: #94a3b8;
-          font-size: 13px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .assignment-tab:hover {
-          border-color: #059669;
-        }
-
-        .assignment-tab.active {
-          background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-          border-color: transparent;
-          color: white;
+        .metrics-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 20px;
         }
 
         .progress-card {
-          background: #1e293b;
-          border: 1px solid #334155;
-          border-radius: 16px;
+          background: var(--bg-card);
+          border: 1px solid var(--border-color);
+          border-radius: 12px;
           padding: 24px;
-          margin-bottom: 24px;
         }
 
         .progress-header {
@@ -134,299 +79,185 @@ export function StaffProgress({ onSelectLocation }: StaffProgressProps) {
           margin-bottom: 20px;
         }
 
-        .round-name {
+        .progress-title {
           font-size: 18px;
           font-weight: 600;
+          color: var(--text-primary);
+          margin: 0;
         }
 
         .progress-stats {
-          font-size: 28px;
-          font-weight: 700;
+          font-size: 14px;
+          color: var(--text-muted);
         }
 
-        .progress-bar-container {
-          height: 12px;
-          background: #0f172a;
-          border-radius: 6px;
-          overflow: hidden;
-          margin-bottom: 12px;
-        }
-
-        .progress-bar {
-          height: 100%;
-          border-radius: 6px;
-          transition: width 0.5s ease;
-        }
-
-        .progress-label {
-          text-align: center;
-          color: #64748b;
-          font-size: 13px;
-        }
-
-        .locations-section {
-          margin-top: 32px;
+        .tasks-section {
+          background: var(--bg-card);
+          border: 1px solid var(--border-color);
+          border-radius: 12px;
+          padding: 24px;
         }
 
         .section-title {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          font-size: 14px;
+          font-size: 18px;
           font-weight: 600;
-          color: #94a3b8;
-          margin-bottom: 16px;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
+          color: var(--text-primary);
+          margin: 0 0 20px 0;
         }
 
-        .locations-grid {
-          display: grid;
+        .tasks-list {
+          display: flex;
+          flex-direction: column;
           gap: 12px;
         }
 
-        .location-item {
+        .task-item {
           display: flex;
-          align-items: center;
           justify-content: space-between;
-          background: #0f172a;
-          border: 1px solid #334155;
-          border-radius: 10px;
+          align-items: center;
           padding: 16px;
+          background: var(--bg-tertiary);
+          border-radius: 10px;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.15s ease;
         }
 
-        .location-item:hover {
-          border-color: #059669;
+        .task-item:hover {
+          background: var(--bg-hover);
           transform: translateX(4px);
         }
 
-        .location-item.completed {
-          border-color: #10b981;
-          opacity: 0.7;
-        }
-
-        .location-item.has-incident {
-          border-color: #ef4444;
-        }
-
-        .location-info {
+        .task-info {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 16px;
         }
 
-        .location-icon {
+        .task-icon {
           width: 40px;
           height: 40px;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #1e293b;
-          border-radius: 8px;
-          font-size: 20px;
+          background: var(--bg-card);
+          border-radius: 10px;
         }
 
-        .location-name {
+        .task-icon :global(svg) {
+          width: 20px;
+          height: 20px;
+        }
+
+        .task-details {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .task-name {
+          font-size: 14px;
           font-weight: 500;
-          margin-bottom: 4px;
+          color: var(--text-primary);
+          margin: 0;
         }
 
-        .location-floor {
-          font-size: 12px;
-          color: #64748b;
+        .task-location {
+          font-size: 13px;
+          color: var(--text-muted);
+          margin: 0;
         }
 
-        .location-status {
+        .task-meta {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: 16px;
+        }
+
+        .task-time {
           font-size: 12px;
-          padding: 6px 12px;
-          border-radius: 20px;
+          color: var(--text-muted);
         }
 
-        .status-pending {
-          background: rgba(148, 163, 184, 0.1);
-          color: #94a3b8;
-        }
-
-        .status-completed {
-          background: rgba(16, 185, 129, 0.1);
-          color: #10b981;
-        }
-
-        .status-incident {
-          background: rgba(239, 68, 68, 0.1);
-          color: #ef4444;
-        }
-
-        .loading-state, .error-state {
-          text-align: center;
-          padding: 60px 20px;
-        }
-
-        .loading-spinner {
-          width: 40px;
-          height: 40px;
-          border: 3px solid #334155;
-          border-top-color: #059669;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin: 0 auto 16px;
-        }
-
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-
-        .empty-state {
-          text-align: center;
-          padding: 40px 20px;
-          color: #64748b;
-        }
-
-        .empty-icon {
-          font-size: 48px;
-          margin-bottom: 16px;
+        @media (max-width: 1024px) {
+          .metrics-grid {
+            grid-template-columns: 1fr;
+          }
         }
       `}</style>
 
-      <div className="header">
-        <h1 className="header-title">🌙 NightGuard</h1>
-        <p className="header-subtitle">Tu progreso de auditoría</p>
-      </div>
+      <div className="staff-content">
+        <div className="metrics-grid">
+          <MetricCard
+            title="Completed Tasks"
+            value={completedTasks}
+            subtitle={`of ${totalTasks} total tasks`}
+            icon={<CheckCircleIcon />}
+            iconColor="var(--color-success)"
+          />
+          <MetricCard
+            title="In Progress"
+            value={tasks.filter((t) => t.status === "in_progress").length}
+            subtitle="Currently working on"
+            icon={<ActivityIcon />}
+            iconColor="var(--color-warning)"
+          />
+          <MetricCard
+            title="Pending"
+            value={tasks.filter((t) => t.status === "pending").length}
+            subtitle="Remaining tasks"
+            icon={<ClockIcon />}
+            iconColor="var(--text-muted)"
+          />
+        </div>
 
-      {loading && !progress ? (
-        <div className="loading-state">
-          <div className="loading-spinner" />
-          <p>Cargando...</p>
-        </div>
-      ) : error ? (
-        <div className="error-state">
-          <p>⚠️ {error}</p>
-        </div>
-      ) : assignments.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">📋</div>
-          <p>No tienes rondas asignadas para hoy</p>
-        </div>
-      ) : (
-        <>
-          {/* Selector de asignación */}
-          <div className="assignment-selector">
-            {assignments.map((a) => (
-              <button
-                key={a.id}
-                className={`assignment-tab ${selectedAssignment === a.id ? "active" : ""}`}
-                onClick={() => setSelectedAssignment(a.id)}
-              >
-                {a.roundName}
-              </button>
-            ))}
+        <div className="progress-card">
+          <div className="progress-header">
+            <h3 className="progress-title">Daily Progress</h3>
+            <span className="progress-stats">
+              {completedTasks}/{totalTasks} tasks completed
+            </span>
           </div>
+          <ProgressBar
+            label="Overall Completion"
+            value={progressPercentage}
+            color="var(--color-primary)"
+          />
+        </div>
 
-          {/* Card de progreso */}
-          {progress && (
-            <>
-              <div className="progress-card">
-                <div className="progress-header">
-                  <span className="round-name">{progress.roundName}</span>
-                  <span
-                    className="progress-stats"
-                    style={{ color: getStatusColor(progress.progressPercentage) }}
-                  >
-                    {progress.completedCheckins}/{progress.totalLocations}
-                  </span>
-                </div>
-                <div className="progress-bar-container">
-                  <div
-                    className="progress-bar"
-                    style={{
-                      width: `${progress.progressPercentage}%`,
-                      background: `linear-gradient(90deg, ${getStatusColor(progress.progressPercentage)} 0%, ${getStatusColor(progress.progressPercentage)}88 100%)`,
-                    }}
-                  />
-                </div>
-                <p className="progress-label">
-                  {progress.progressPercentage}% completado
-                </p>
-              </div>
-
-              {/* Ubicaciones pendientes */}
-              {progress.locationsPending.length > 0 && (
-                <div className="locations-section">
-                  <h3 className="section-title">
-                    <span>📍</span>
-                    <span>Pendientes ({progress.locationsPending.length})</span>
-                  </h3>
-                  <div className="locations-grid">
-                    {progress.locationsPending.map((loc) => (
-                      <div
-                        key={loc.id}
-                        className="location-item"
-                        onClick={() => onSelectLocation?.(loc.id, loc.name)}
-                      >
-                        <div className="location-info">
-                          <div className="location-icon">🏨</div>
-                          <div>
-                            <div className="location-name">{loc.name}</div>
-                            <div className="location-floor">
-                              {loc.floor !== null ? `Piso ${loc.floor}` : "Sin piso"}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="location-status status-pending">
-                          <span>⏳</span>
-                          <span>Pendiente</span>
-                        </div>
-                      </div>
-                    ))}
+        <div className="tasks-section">
+          <h3 className="section-title">Today&apos;s Tasks</h3>
+          <div className="tasks-list">
+            {tasks.map((task) => {
+              const config = getStatusConfig(task.status);
+              return (
+                <div
+                  key={task.id}
+                  className="task-item"
+                  onClick={() => {
+                    if (task.status === "pending" || task.status === "in_progress") {
+                      onSelectLocation?.(task.id, task.name);
+                    }
+                  }}
+                >
+                  <div className="task-info">
+                    <div className="task-icon" style={{ color: config.color }}>
+                      {config.icon}
+                    </div>
+                    <div className="task-details">
+                      <p className="task-name">{task.name}</p>
+                      <p className="task-location">{task.location}</p>
+                    </div>
+                  </div>
+                  <div className="task-meta">
+                    {task.time && <span className="task-time">{task.time}</span>}
+                    <StatusBadge status={config.badge} />
                   </div>
                 </div>
-              )}
-
-              {/* Ubicaciones completadas */}
-              {progress.locationsCompleted.length > 0 && (
-                <div className="locations-section">
-                  <h3 className="section-title">
-                    <span>✅</span>
-                    <span>Completados ({progress.locationsCompleted.length})</span>
-                  </h3>
-                  <div className="locations-grid">
-                    {progress.locationsCompleted.map((loc) => (
-                      <div
-                        key={loc.id}
-                        className={`location-item completed ${loc.hasIncident ? "has-incident" : ""}`}
-                      >
-                        <div className="location-info">
-                          <div className="location-icon">
-                            {loc.hasIncident ? "⚠️" : "✅"}
-                          </div>
-                          <div>
-                            <div className="location-name">{loc.name}</div>
-                            <div className="location-floor">
-                              {loc.floor !== null ? `Piso ${loc.floor}` : "Sin piso"}
-                            </div>
-                          </div>
-                        </div>
-                        <div
-                          className={`location-status ${loc.hasIncident ? "status-incident" : "status-completed"}`}
-                        >
-                          <span>{loc.hasIncident ? "🚨" : "✓"}</span>
-                          <span>{loc.hasIncident ? "Incidencia" : "Listo"}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </>
-      )}
-    </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </DashboardLayout>
   );
 }
-
