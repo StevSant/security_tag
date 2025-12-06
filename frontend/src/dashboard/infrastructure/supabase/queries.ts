@@ -1,0 +1,292 @@
+import { createClient } from "@/shared/infrastructure/supabase/client";
+
+// Tipos para las respuestas
+export interface StaffProgressData {
+  assignmentId: string;
+  roundName: string;
+  totalLocations: number;
+  completedCheckins: number;
+  progressPercentage: number;
+  locationsPending: LocationInfo[];
+  locationsCompleted: CompletedLocationInfo[];
+}
+
+export interface LocationInfo {
+  id: string;
+  name: string;
+  floor: number | null;
+}
+
+export interface CompletedLocationInfo extends LocationInfo {
+  checkedAt: string;
+  hasIncident: boolean;
+}
+
+export interface NightlyStatsData {
+  staffId: string;
+  staffName: string;
+  roundName: string;
+  totalLocations: number;
+  completedCheckins: number;
+  compliancePercentage: number;
+  incidentsCount: number;
+  assignmentStatus: string;
+  startedAt: string | null;
+  completedAt: string | null;
+}
+
+export interface IncidentData {
+  incidentId: string;
+  staffName: string;
+  locationName: string;
+  locationFloor: number;
+  damageDescription: string;
+  damagePhotoUrl: string;
+  reportedAt: string;
+}
+
+interface QueryResult<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
+/**
+ * Obtiene el progreso del staff para una asignación específica
+ */
+export async function getStaffProgress(
+  assignmentId: string
+): Promise<QueryResult<StaffProgressData>> {
+  try {
+    const supabase = createClient();
+    
+    const { data, error } = await supabase.rpc("get_staff_progress", {
+      assignment_uuid: assignmentId,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    if (!data || data.length === 0) {
+      return { success: false, error: "Asignación no encontrada" };
+    }
+
+    const row = data[0];
+    return {
+      success: true,
+      data: {
+        assignmentId: row.assignment_id,
+        roundName: row.round_name,
+        totalLocations: row.total_locations,
+        completedCheckins: Number(row.completed_checkins),
+        progressPercentage: Number(row.progress_percentage),
+        locationsPending: row.locations_pending || [],
+        locationsCompleted: row.locations_completed || [],
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error desconocido",
+    };
+  }
+}
+
+/**
+ * Obtiene las asignaciones del día actual para el usuario
+ */
+export async function getTodayAssignments(): Promise<
+  QueryResult<Array<{ id: string; roundName: string; status: string }>>
+> {
+  try {
+    const supabase = createClient();
+    const today = new Date().toISOString().split("T")[0];
+
+    const { data, error } = await supabase
+      .from("daily_assignments")
+      .select(`
+        id,
+        status,
+        rounds (name)
+      `)
+      .eq("assigned_date", today);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return {
+      success: true,
+      data: (data || []).map((item) => ({
+        id: item.id,
+        roundName: (item.rounds as { name: string })?.name || "Ronda",
+        status: item.status,
+      })),
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error desconocido",
+    };
+  }
+}
+
+/**
+ * [ADMIN] Obtiene estadísticas nocturnas para todos los staff
+ */
+export async function getNightlyStats(
+  targetDate?: string
+): Promise<QueryResult<NightlyStatsData[]>> {
+  try {
+    const supabase = createClient();
+    
+    const { data, error } = await supabase.rpc("get_nightly_stats", {
+      target_date: targetDate || new Date().toISOString().split("T")[0],
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return {
+      success: true,
+      data: (data || []).map((row: Record<string, unknown>) => ({
+        staffId: row.staff_id as string,
+        staffName: row.staff_name as string,
+        roundName: row.round_name as string,
+        totalLocations: row.total_locations as number,
+        completedCheckins: Number(row.completed_checkins),
+        compliancePercentage: Number(row.compliance_percentage),
+        incidentsCount: Number(row.incidents_count),
+        assignmentStatus: row.assignment_status as string,
+        startedAt: row.started_at as string | null,
+        completedAt: row.completed_at as string | null,
+      })),
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error desconocido",
+    };
+  }
+}
+
+/**
+ * [ADMIN] Obtiene resumen de incidencias recientes
+ */
+export async function getIncidentsSummary(
+  startDate?: string,
+  endDate?: string
+): Promise<QueryResult<IncidentData[]>> {
+  try {
+    const supabase = createClient();
+    
+    const { data, error } = await supabase.rpc("get_incidents_summary", {
+      start_date: startDate,
+      end_date: endDate,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return {
+      success: true,
+      data: (data || []).map((row: Record<string, unknown>) => ({
+        incidentId: row.incident_id as string,
+        staffName: row.staff_name as string,
+        locationName: row.location_name as string,
+        locationFloor: row.location_floor as number,
+        damageDescription: row.damage_description as string,
+        damagePhotoUrl: row.damage_photo_url as string,
+        reportedAt: row.reported_at as string,
+      })),
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error desconocido",
+    };
+  }
+}
+
+// ============================================
+// MOCK FUNCTIONS (Desarrollo)
+// ============================================
+
+export async function getStaffProgressMock(
+  _assignmentId: string
+): Promise<QueryResult<StaffProgressData>> {
+  await new Promise((r) => setTimeout(r, 500));
+  
+  return {
+    success: true,
+    data: {
+      assignmentId: "mock-assignment-1",
+      roundName: "Ronda Nocturna Completa",
+      totalLocations: 8,
+      completedCheckins: 3,
+      progressPercentage: 37.5,
+      locationsPending: [
+        { id: "loc-4", name: "Sala de Máquinas", floor: -1 },
+        { id: "loc-5", name: "Estacionamiento", floor: -1 },
+        { id: "loc-6", name: "Terraza", floor: 3 },
+        { id: "loc-7", name: "Piscina", floor: 0 },
+        { id: "loc-8", name: "Restaurante", floor: 0 },
+      ],
+      locationsCompleted: [
+        { id: "loc-1", name: "Recepción Principal", floor: 0, checkedAt: new Date().toISOString(), hasIncident: false },
+        { id: "loc-2", name: "Pasillo Piso 1", floor: 1, checkedAt: new Date().toISOString(), hasIncident: false },
+        { id: "loc-3", name: "Pasillo Piso 2", floor: 2, checkedAt: new Date().toISOString(), hasIncident: true },
+      ],
+    },
+  };
+}
+
+export async function getNightlyStatsMock(): Promise<QueryResult<NightlyStatsData[]>> {
+  await new Promise((r) => setTimeout(r, 500));
+  
+  return {
+    success: true,
+    data: [
+      {
+        staffId: "user-1",
+        staffName: "Carlos Rodríguez",
+        roundName: "Ronda Nocturna Completa",
+        totalLocations: 8,
+        completedCheckins: 8,
+        compliancePercentage: 100,
+        incidentsCount: 1,
+        assignmentStatus: "completed",
+        startedAt: "2024-12-05T22:00:00Z",
+        completedAt: "2024-12-05T23:15:00Z",
+      },
+      {
+        staffId: "user-2",
+        staffName: "María González",
+        roundName: "Ronda Áreas Comunes",
+        totalLocations: 4,
+        completedCheckins: 4,
+        compliancePercentage: 100,
+        incidentsCount: 0,
+        assignmentStatus: "completed",
+        startedAt: "2024-12-05T22:30:00Z",
+        completedAt: "2024-12-05T23:00:00Z",
+      },
+      {
+        staffId: "user-3",
+        staffName: "Juan Pérez",
+        roundName: "Ronda Nocturna Completa",
+        totalLocations: 8,
+        completedCheckins: 5,
+        compliancePercentage: 62.5,
+        incidentsCount: 2,
+        assignmentStatus: "in_progress",
+        startedAt: "2024-12-05T22:15:00Z",
+        completedAt: null,
+      },
+    ],
+  };
+}
+
