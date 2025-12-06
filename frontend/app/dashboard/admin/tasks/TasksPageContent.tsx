@@ -97,7 +97,7 @@ function TasksContent() {
 
 export default function TasksPageContent() {
   return (
-    <AuthGuard allowedRoles={["admin"]}>
+    <AuthGuard requiredRole="admin">
       <TasksContent />
     </AuthGuard>
   );
