@@ -55,6 +55,19 @@ export default function RootLayout({
         className={`${jetbrainsMono.variable} ${spaceGrotesk.variable} antialiased`}
       >
         {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                  navigator.serviceWorker.register('/sw.js')
+                    .then((reg) => console.log('[SW] Registered:', reg.scope))
+                    .catch((err) => console.log('[SW] Registration failed:', err));
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );
