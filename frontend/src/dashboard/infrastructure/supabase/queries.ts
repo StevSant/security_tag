@@ -237,7 +237,7 @@ export async function getStaffUsers(): Promise<
 
     return {
       success: true,
-      data: (data || []).map((user) => ({
+      data: (data || []).map((user: { id: string; full_name: string; created_at: string }) => ({
         id: user.id,
         email: "", // El email está en auth.users, no en profiles
         fullName: user.full_name,
