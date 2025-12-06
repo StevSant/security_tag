@@ -118,7 +118,7 @@ export async function getTodayAssignments(): Promise<
 
     return {
       success: true,
-      data: (data || []).map((item) => {
+      data: (data || []).map((item: { id: string; status: string; rounds: unknown }) => {
         const rounds = item.rounds as { name: string } | { name: string }[] | null;
         const roundName = Array.isArray(rounds) 
           ? rounds[0]?.name 
