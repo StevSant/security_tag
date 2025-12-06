@@ -1,9 +1,91 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@/shared/infrastructure/auth";
 import { ShieldIcon, ActivityIcon, UsersIcon, CheckCircleIcon } from "@/shared/ui/icons";
 
 export default function Home() {
+  const router = useRouter();
+  const { isAuthenticated, isLoading, role } = useAuth();
+
+  // Redirigir automáticamente si el usuario está autenticado
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      if (role === "admin") {
+        router.replace("/dashboard/admin");
+      } else {
+        router.replace("/dashboard/staff");
+      }
+    }
+  }, [isAuthenticated, isLoading, role, router]);
+
+  // Mostrar loading mientras verifica
+  if (isLoading) {
+    return (
+      <div className="loading-page">
+        <style jsx>{`
+          .loading-page {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f0fdfa 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #10b981;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+          }
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+        <div className="spinner" />
+      </div>
+    );
+  }
+
+  // Si está autenticado, mostrar loading mientras redirige
+  if (isAuthenticated) {
+    return (
+      <div className="loading-page">
+        <style jsx>{`
+          .loading-page {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f0fdfa 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+          }
+          .spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #10b981;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+          }
+          .loading-text {
+            color: #64748b;
+            font-size: 14px;
+          }
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+        <div className="spinner" />
+        <p className="loading-text">Redirigiendo al dashboard...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="landing">
       <style jsx>{`
@@ -15,7 +97,6 @@ export default function Home() {
           align-items: center;
           justify-content: center;
           padding: 24px;
-          color: var(--text-primary);
           position: relative;
           overflow: hidden;
         }
@@ -50,11 +131,7 @@ export default function Home() {
         .logo-container {
           width: 80px;
           height: 80px;
-          background: linear-gradient(
-            135deg,
-            var(--color-primary) 0%,
-            var(--color-primary-dark) 100%
-          );
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
           border-radius: 20px;
           display: flex;
           align-items: center;
@@ -73,17 +150,17 @@ export default function Home() {
           font-size: 48px;
           font-weight: 800;
           margin: 0 0 16px 0;
-          color: var(--text-primary);
+          color: #0f172a;
           line-height: 1.1;
         }
 
         .title-accent {
-          color: var(--color-primary);
+          color: #10b981;
         }
 
         .subtitle {
           font-size: 18px;
-          color: var(--text-secondary);
+          color: #64748b;
           margin: 0 0 48px 0;
           line-height: 1.6;
         }
@@ -112,11 +189,7 @@ export default function Home() {
         }
 
         .cta-primary {
-          background: linear-gradient(
-            135deg,
-            var(--color-primary) 0%,
-            var(--color-primary-dark) 100%
-          );
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
           color: white;
           border: none;
           box-shadow: 0 10px 30px rgba(16, 185, 129, 0.25);
@@ -128,24 +201,14 @@ export default function Home() {
         }
 
         .cta-secondary {
-          background: var(--bg-card);
-          color: var(--text-primary);
-          border: 1px solid var(--border-color);
+          background: white;
+          color: #0f172a;
+          border: 1px solid #e2e8f0;
         }
 
         .cta-secondary:hover {
-          background: var(--bg-hover);
-          border-color: var(--border-hover);
-        }
-
-        .cta-icon {
-          width: 20px;
-          height: 20px;
-        }
-
-        .cta-icon :global(svg) {
-          width: 100%;
-          height: 100%;
+          background: #f8fafc;
+          border-color: #cbd5e1;
         }
 
         .features {
@@ -157,8 +220,8 @@ export default function Home() {
         }
 
         .feature {
-          background: var(--bg-card);
-          border: 1px solid var(--border-color);
+          background: white;
+          border: 1px solid #e2e8f0;
           border-radius: 16px;
           padding: 28px 24px;
           transition: all 0.2s ease;
@@ -166,8 +229,8 @@ export default function Home() {
 
         .feature:hover {
           transform: translateY(-4px);
-          box-shadow: var(--shadow-lg);
-          border-color: var(--color-primary);
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+          border-color: #10b981;
         }
 
         .feature-icon {
@@ -179,7 +242,7 @@ export default function Home() {
           align-items: center;
           justify-content: center;
           margin: 0 auto 16px;
-          color: var(--color-primary);
+          color: #10b981;
         }
 
         .feature-icon :global(svg) {
@@ -191,12 +254,12 @@ export default function Home() {
           font-size: 16px;
           font-weight: 600;
           margin: 0 0 8px 0;
-          color: var(--text-primary);
+          color: #0f172a;
         }
 
         .feature-desc {
           font-size: 14px;
-          color: var(--text-muted);
+          color: #64748b;
           margin: 0;
           line-height: 1.5;
         }
@@ -228,22 +291,19 @@ export default function Home() {
           <ShieldIcon />
         </div>
         <h1 className="title">
-          <span className="title-accent">CyberSec</span> Control
+          <span className="title-accent">Night</span>Guard
         </h1>
         <p className="subtitle">
-          Enterprise-grade Security Operations Center for real-time threat monitoring, incident
-          management, and comprehensive security analytics.
+          Sistema de auditoría hotelera con check-ins NFC, gestión de rondas y 
+          monitoreo en tiempo real del personal de seguridad.
         </p>
 
         <div className="cta-group">
           <Link href="/login" className="cta-button cta-primary">
-            <span>Get Started</span>
+            <span>🔐 Iniciar Sesión</span>
           </Link>
-          <Link href="/dashboard/admin" className="cta-button cta-secondary">
-            <span className="cta-icon">
-              <ShieldIcon />
-            </span>
-            <span>View Dashboard</span>
+          <Link href="/register" className="cta-button cta-secondary">
+            <span>📝 Registrarse como Botón</span>
           </Link>
         </div>
 
@@ -252,27 +312,27 @@ export default function Home() {
             <div className="feature-icon">
               <ActivityIcon />
             </div>
-            <h3 className="feature-title">Real-time Monitoring</h3>
+            <h3 className="feature-title">Rondas NFC</h3>
             <p className="feature-desc">
-              24/7 surveillance of your security infrastructure with instant alerts
+              Check-in en puntos con escaneo NFC y evidencia fotográfica obligatoria
             </p>
           </div>
           <div className="feature">
             <div className="feature-icon">
               <CheckCircleIcon />
             </div>
-            <h3 className="feature-title">Threat Detection</h3>
+            <h3 className="feature-title">Reporte de Incidencias</h3>
             <p className="feature-desc">
-              Advanced AI-powered threat detection and automated response
+              Documenta daños con fotos y descripciones detalladas en tiempo real
             </p>
           </div>
           <div className="feature">
             <div className="feature-icon">
               <UsersIcon />
             </div>
-            <h3 className="feature-title">Access Control</h3>
+            <h3 className="feature-title">Dashboard Admin</h3>
             <p className="feature-desc">
-              Comprehensive user access management and session monitoring
+              Métricas de cumplimiento, ranking de botones y alertas de incidencias
             </p>
           </div>
         </div>
