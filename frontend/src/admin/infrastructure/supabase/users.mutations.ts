@@ -75,7 +75,7 @@ export async function listUsers(): Promise<{
 
     return {
       success: true,
-      data: (data || []).map((profile) => ({
+      data: (data || []).map((profile: { id: string; full_name: string; created_at: string }) => ({
         id: profile.id,
         email: "", // No disponible desde profiles
         fullName: profile.full_name,

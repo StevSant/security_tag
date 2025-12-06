@@ -118,8 +118,8 @@ export async function getTodayAssignments(): Promise<
 
     return {
       success: true,
-      data: (data || []).map((item) => {
-        const rounds = item.rounds as { name: string } | { name: string }[] | null;
+      data: (data || []).map((item: { id: string; status: string; rounds: { name: string } | { name: string }[] | null }) => {
+        const rounds = item.rounds;
         const roundName = Array.isArray(rounds) 
           ? rounds[0]?.name 
           : rounds?.name;
@@ -237,7 +237,7 @@ export async function getStaffUsers(): Promise<
 
     return {
       success: true,
-      data: (data || []).map((item) => ({
+      data: (data || []).map((item: { id: string; full_name: string; created_at: string }) => ({
         id: item.id,
         fullName: item.full_name,
         email: "", // Email no está en profiles por privacidad
