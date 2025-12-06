@@ -71,10 +71,10 @@ export async function uploadPhoto(
       return { success: false, error: error.message };
     }
 
-    // Obtener URL firmada (válida por 1 hora)
+    // Obtener URL pública o firmada
     const { data: urlData } = await supabase.storage
       .from(BUCKET_NAME)
-      .createSignedUrl(data.path, 3600);
+      .createSignedUrl(data.path, 60 * 60 * 24 * 7); // 7 días
 
     return {
       success: true,
@@ -90,30 +90,26 @@ export async function uploadPhoto(
 }
 
 /**
- * Mock para desarrollo - simula la subida de fotos
+ * Obtiene URL firmada de una foto existente
  */
-export async function uploadPhotoMock(
-  uri: string,
-  _userId: string,
-  assignmentId: string,
-  type: "proof" | "damage"
-): Promise<UploadResult> {
-  // Simular delay de red
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-  
-  // Simular éxito 95% del tiempo
-  if (Math.random() > 0.05) {
-    const mockUrl = `https://mock-storage.example.com/${assignmentId}/${type}_${Date.now()}.jpg`;
-    console.log(`[MOCK] Photo uploaded: ${mockUrl}`);
-    return {
-      success: true,
-      url: mockUrl,
-    };
-  }
-  
-  return {
-    success: false,
-    error: "Error simulado de red",
-  };
-}
+export async function getSignedPhotoUrl(
+  path: string,
+  expiresIn: number = 3600
+): Promise<string | null> {
+  try {
+    const supabase = createClient();
+    const { data, error } = await supabase.storage
+      .from(BUCKET_NAME)
+      .createSignedUrl(path, expiresIn);
 
+    if (error) {
+      console.error("Error getting signed URL:", error);
+      return null;
+    }
+
+    return data.signedUrl;
+  } catch (error) {
+    console.error("Error in getSignedPhotoUrl:", error);
+    return null;
+  }
+}

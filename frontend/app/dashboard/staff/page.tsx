@@ -1,47 +1,51 @@
 "use client";
 
 import { useState } from "react";
+import { AuthGuard, useAuth } from "@/shared/infrastructure/auth";
 import { StaffProgress } from "@/dashboard/ui/StaffProgress";
 import { CheckpointForm } from "@/rounds_execution/ui/CheckpointForm";
 
-export default function StaffDashboardPage() {
+function StaffDashboardContent() {
+  const { user } = useAuth();
   const [selectedLocation, setSelectedLocation] = useState<{
     id: string;
     name: string;
+    assignmentId: string;
   } | null>(null);
 
-  // Mock data - en producción vendría de la sesión
-  const mockUserId = "mock-user-id";
-  const mockAssignmentId = "mock-assignment-1";
-
-  const handleSelectLocation = (locationId: string, locationName: string) => {
-    setSelectedLocation({ id: locationId, name: locationName });
+  const handleSelectLocation = (
+    locationId: string,
+    locationName: string,
+    assignmentId: string
+  ) => {
+    setSelectedLocation({ id: locationId, name: locationName, assignmentId });
   };
 
   const handleCheckinSuccess = () => {
     setSelectedLocation(null);
-    // Aquí se podría refrescar el progreso
   };
 
   const handleCheckinCancel = () => {
     setSelectedLocation(null);
   };
 
-  if (selectedLocation) {
+  if (selectedLocation && user) {
     return (
-      <div style={{ 
-        minHeight: "100vh", 
-        background: "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)",
-        padding: "20px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center"
-      }}>
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)",
+          padding: "20px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <CheckpointForm
           locationId={selectedLocation.id}
           locationName={selectedLocation.name}
-          assignmentId={mockAssignmentId}
-          userId={mockUserId}
+          assignmentId={selectedLocation.assignmentId}
+          userId={user.id}
           onSuccess={handleCheckinSuccess}
           onCancel={handleCheckinCancel}
         />
@@ -52,3 +56,10 @@ export default function StaffDashboardPage() {
   return <StaffProgress onSelectLocation={handleSelectLocation} />;
 }
 
+export default function StaffDashboardPage() {
+  return (
+    <AuthGuard requiredRole="staff">
+      <StaffDashboardContent />
+    </AuthGuard>
+  );
+}

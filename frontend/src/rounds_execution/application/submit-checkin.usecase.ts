@@ -1,10 +1,7 @@
 import type { CreateCheckinDTO, Checkin } from "../domain/checkin.entity";
 import { validateCheckinData } from "../domain/checkin.entity";
-import { createCheckin, createCheckinMock } from "../infrastructure/supabase/checkin.mutations";
-import { uploadPhoto, uploadPhotoMock } from "../infrastructure/supabase/photo.storage";
-
-// Usar mocks en desarrollo
-const USE_MOCKS = process.env.NODE_ENV === "development" && !process.env.NEXT_PUBLIC_SUPABASE_URL;
+import { createCheckin } from "../infrastructure/supabase/checkin.mutations";
+import { uploadPhoto } from "../infrastructure/supabase/photo.storage";
 
 interface SubmitCheckinParams {
   locationId: string;
@@ -32,12 +29,9 @@ interface SubmitResult {
  * 3. Creación del registro en la base de datos
  */
 export async function submitCheckin(params: SubmitCheckinParams): Promise<SubmitResult> {
-  const uploadFn = USE_MOCKS ? uploadPhotoMock : uploadPhoto;
-  const createFn = USE_MOCKS ? createCheckinMock : createCheckin;
-
   try {
     // 1. Subir foto de prueba (obligatoria)
-    const proofUpload = await uploadFn(
+    const proofUpload = await uploadPhoto(
       params.proofPhotoUri,
       params.userId,
       params.assignmentId,
@@ -54,7 +48,7 @@ export async function submitCheckin(params: SubmitCheckinParams): Promise<Submit
     // 2. Si hay incidencia, subir foto de daño
     let damagePhotoUrl: string | undefined;
     if (params.hasIncident && params.damagePhotoUri) {
-      const damageUpload = await uploadFn(
+      const damageUpload = await uploadPhoto(
         params.damagePhotoUri,
         params.userId,
         params.assignmentId,
@@ -92,7 +86,7 @@ export async function submitCheckin(params: SubmitCheckinParams): Promise<Submit
     }
 
     // 5. Crear check-in en la base de datos
-    const result = await createFn(dto);
+    const result = await createCheckin(dto);
 
     if (!result.success) {
       return {
@@ -113,4 +107,3 @@ export async function submitCheckin(params: SubmitCheckinParams): Promise<Submit
     };
   }
 }
-

@@ -1,36 +1,81 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/shared/infrastructure/auth";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { signIn, user, role, loading: authLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Redirigir si ya está autenticado
+  useEffect(() => {
+    if (!authLoading && user) {
+      if (role === "admin") {
+        router.replace("/dashboard/admin");
+      } else {
+        router.replace("/dashboard/staff");
+      }
+    }
+  }, [user, role, authLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
-    // Mock login - en producción usar Supabase Auth
-    await new Promise((r) => setTimeout(r, 1000));
+    const result = await signIn(email, password);
     
-    if (email && password) {
-      // Redirigir basado en email (mock)
-      if (email.includes("admin")) {
-        router.push("/dashboard/admin");
-      } else {
-        router.push("/dashboard/staff");
-      }
-    } else {
-      setError("Por favor completa todos los campos");
+    if (result.error) {
+      setError(translateError(result.error));
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
+    // Si no hay error, el useEffect redirigirá automáticamente
   };
+
+  // Traducir errores comunes de Supabase
+  const translateError = (error: string): string => {
+    const translations: Record<string, string> = {
+      "Invalid login credentials": "Credenciales inválidas",
+      "Email not confirmed": "Email no confirmado",
+      "User not found": "Usuario no encontrado",
+      "Invalid email or password": "Email o contraseña incorrectos",
+    };
+    return translations[error] || error;
+  };
+
+  // Mostrar loading mientras verifica sesión
+  if (authLoading) {
+    return (
+      <div className="login-page">
+        <style jsx>{`
+          .login-page {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0f 0%, #0f172a 50%, #1e1b4b 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid #334155;
+            border-top-color: #059669;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+          }
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+        <div className="spinner" />
+      </div>
+    );
+  }
 
   return (
     <div className="login-page">
@@ -181,39 +226,26 @@ export default function LoginPage() {
           to { transform: rotate(360deg); }
         }
 
-        .demo-hint {
+        .help-text {
           margin-top: 24px;
           padding-top: 24px;
           border-top: 1px solid #334155;
           text-align: center;
         }
 
-        .demo-hint p {
+        .help-text p {
           font-size: 12px;
           color: #64748b;
-          margin: 0 0 12px 0;
+          margin: 0;
         }
 
-        .demo-accounts {
-          display: flex;
-          gap: 12px;
-          justify-content: center;
+        .help-text a {
+          color: #10b981;
+          text-decoration: none;
         }
 
-        .demo-btn {
-          padding: 8px 16px;
-          background: rgba(139, 92, 246, 0.1);
-          border: 1px solid rgba(139, 92, 246, 0.3);
-          border-radius: 8px;
-          color: #a855f7;
-          font-family: inherit;
-          font-size: 12px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .demo-btn:hover {
-          background: rgba(139, 92, 246, 0.2);
+        .help-text a:hover {
+          text-decoration: underline;
         }
       `}</style>
 
@@ -234,6 +266,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
+              required
             />
           </div>
 
@@ -246,10 +279,11 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={isLoading}
+              required
             />
           </div>
 
-          {error && <div className="error-message">{error}</div>}
+          {error && <div className="error-message">⚠️ {error}</div>}
 
           <button type="submit" className="submit-btn" disabled={isLoading}>
             {isLoading ? (
@@ -263,33 +297,10 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="demo-hint">
-          <p>Cuentas de demostración:</p>
-          <div className="demo-accounts">
-            <button
-              type="button"
-              className="demo-btn"
-              onClick={() => {
-                setEmail("staff@hotel.com");
-                setPassword("demo123");
-              }}
-            >
-              👤 Staff
-            </button>
-            <button
-              type="button"
-              className="demo-btn"
-              onClick={() => {
-                setEmail("admin@hotel.com");
-                setPassword("demo123");
-              }}
-            >
-              👁️ Admin
-            </button>
-          </div>
+        <div className="help-text">
+          <p>¿Necesitas ayuda? Contacta a tu administrador</p>
         </div>
       </div>
     </div>
   );
 }
-

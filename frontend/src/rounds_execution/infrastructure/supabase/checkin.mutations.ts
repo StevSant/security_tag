@@ -91,34 +91,6 @@ export async function updateAssignmentStatus(
   }
 }
 
-/**
- * Mock para desarrollo - simula la creación de check-in
- */
-export async function createCheckinMock(
-  dto: CreateCheckinDTO
-): Promise<MutationResult<Checkin>> {
-  // Simular delay
-  await new Promise((resolve) => setTimeout(resolve, 800));
-  
-  console.log("[MOCK] Creating checkin:", dto);
-  
-  return {
-    success: true,
-    data: {
-      id: crypto.randomUUID(),
-      userId: "mock-user-id",
-      locationId: dto.locationId,
-      assignmentId: dto.assignmentId,
-      proofPhotoUrl: dto.proofPhotoUrl,
-      hasIncident: dto.hasIncident,
-      damagePhotoUrl: dto.damagePhotoUrl || null,
-      damageDescription: dto.damageDescription || null,
-      nfcScanVerified: dto.nfcScanVerified || false,
-      createdAt: new Date(),
-    },
-  };
-}
-
 // Mapper de DB a Entity
 function mapToCheckin(dbRecord: Record<string, unknown>): Checkin {
   return {
@@ -134,4 +106,3 @@ function mapToCheckin(dbRecord: Record<string, unknown>): Checkin {
     createdAt: new Date(dbRecord.created_at as string),
   };
 }
-
