@@ -1,19 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ShieldIcon } from "@/shared/ui/icons";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { signIn, isAuthenticated, role, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // Redirigir si ya está autenticado
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      if (role === "admin") {
+        router.replace("/dashboard/admin");
+      } else {
+        router.replace("/dashboard/staff");
+      }
+    }
+  }, [isAuthenticated, isLoading, role, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSubmitting(true);
     setError("");
 
     // Mock login - en producción usar Supabase Auth
@@ -32,6 +44,47 @@ export default function LoginPage() {
 
     setIsLoading(false);
   };
+
+  // Traducir errores de Supabase
+  const translateError = (error: string): string => {
+    const errorMap: Record<string, string> = {
+      "Invalid login credentials": "Credenciales incorrectas",
+      "Email not confirmed": "Email no confirmado",
+      "User not found": "Usuario no encontrado",
+      "Too many requests": "Demasiados intentos. Espera un momento.",
+    };
+    return errorMap[error] || error;
+  };
+
+  // Mostrar loading mientras verifica sesión
+  if (isLoading) {
+    return (
+      <div className="login-page">
+        <style jsx>{`
+          .login-page {
+            font-family: 'JetBrains Mono', monospace;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0f 0%, #0f172a 50%, #1e1b4b 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid #334155;
+            border-top-color: #059669;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+          }
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+        <div className="spinner" />
+      </div>
+    );
+  }
 
   return (
     <div className="login-page">
@@ -265,7 +318,8 @@ export default function LoginPage() {
               placeholder="you@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
+              disabled={isSubmitting}
+              autoComplete="email"
             />
           </div>
 
@@ -277,14 +331,15 @@ export default function LoginPage() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
+              disabled={isSubmitting}
+              autoComplete="current-password"
             />
           </div>
 
           {error && <div className="error-message">{error}</div>}
 
-          <button type="submit" className="submit-btn" disabled={isLoading}>
-            {isLoading ? (
+          <button type="submit" className="submit-btn" disabled={isSubmitting}>
+            {isSubmitting ? (
               <>
                 <span className="loading-spinner" />
                 <span>Signing in...</span>

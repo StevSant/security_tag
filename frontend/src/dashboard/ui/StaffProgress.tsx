@@ -13,7 +13,7 @@ import {
 } from "@/shared/ui/icons";
 
 interface StaffProgressProps {
-  onSelectLocation?: (locationId: string, locationName: string) => void;
+  onSelectLocation?: (locationId: string, locationName: string, assignmentId: string) => void;
 }
 
 interface Task {
@@ -48,6 +48,10 @@ export function StaffProgress({ onSelectLocation }: StaffProgressProps) {
       case "pending":
         return { badge: "inactive" as const, icon: <ClockIcon />, color: "var(--text-muted)" };
     }
+  };
+
+  const handleLogout = async () => {
+    await signOut();
   };
 
   return (

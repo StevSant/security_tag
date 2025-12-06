@@ -2,37 +2,37 @@
 
 import Link from "next/link";
 import { AuthGuard, useAuth } from "@/shared/infrastructure/auth";
-import { AdminDashboard } from "@/dashboard/ui/AdminDashboard";
+import { UserManagement } from "@/admin/ui/UserManagement";
 
-function AdminDashboardContent() {
+function UsersPageContent() {
   const { signOut } = useAuth();
 
   return (
-    <div style={{ position: "relative" }}>
-      {/* Header con navegación */}
+    <div style={{ 
+      minHeight: "100vh",
+      background: "linear-gradient(180deg, #0a0a0f 0%, #12121a 100%)",
+    }}>
+      {/* Header */}
       <div style={{
-        position: "fixed",
-        top: 0,
-        right: 0,
-        padding: "16px",
-        zIndex: 100,
         display: "flex",
-        gap: "12px",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "16px 24px",
+        borderBottom: "1px solid #334155",
       }}>
         <Link
-          href="/dashboard/admin/users"
+          href="/dashboard/admin"
           style={{
-            padding: "8px 16px",
-            background: "rgba(139, 92, 246, 0.1)",
-            border: "1px solid rgba(139, 92, 246, 0.3)",
-            borderRadius: "8px",
-            color: "#a855f7",
-            fontFamily: "inherit",
-            fontSize: "12px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            color: "#94a3b8",
             textDecoration: "none",
+            fontSize: "14px",
+            fontFamily: "'JetBrains Mono', monospace",
           }}
         >
-          👥 Gestionar Usuarios
+          ← Volver al Dashboard
         </Link>
         <button
           onClick={signOut}
@@ -50,16 +50,16 @@ function AdminDashboardContent() {
           Cerrar sesión
         </button>
       </div>
-      
-      <AdminDashboard />
+
+      <UserManagement />
     </div>
   );
 }
 
-export default function AdminDashboardPage() {
+export default function UsersPage() {
   return (
     <AuthGuard requiredRole="admin">
-      <AdminDashboardContent />
+      <UsersPageContent />
     </AuthGuard>
   );
 }

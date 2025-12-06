@@ -217,82 +217,37 @@ export async function getIncidentsSummary(
   }
 }
 
-// ============================================
-// MOCK FUNCTIONS (Desarrollo)
-// ============================================
+/**
+ * [ADMIN] Obtiene lista de usuarios staff
+ */
+export async function getStaffUsers(): Promise<
+  QueryResult<Array<{ id: string; email: string; fullName: string; createdAt: string }>>
+> {
+  try {
+    const supabase = createClient();
 
-export async function getStaffProgressMock(
-  _assignmentId: string
-): Promise<QueryResult<StaffProgressData>> {
-  await new Promise((r) => setTimeout(r, 500));
-  
-  return {
-    success: true,
-    data: {
-      assignmentId: "mock-assignment-1",
-      roundName: "Ronda Nocturna Completa",
-      totalLocations: 8,
-      completedCheckins: 3,
-      progressPercentage: 37.5,
-      locationsPending: [
-        { id: "loc-4", name: "Sala de Máquinas", floor: -1 },
-        { id: "loc-5", name: "Estacionamiento", floor: -1 },
-        { id: "loc-6", name: "Terraza", floor: 3 },
-        { id: "loc-7", name: "Piscina", floor: 0 },
-        { id: "loc-8", name: "Restaurante", floor: 0 },
-      ],
-      locationsCompleted: [
-        { id: "loc-1", name: "Recepción Principal", floor: 0, checkedAt: new Date().toISOString(), hasIncident: false },
-        { id: "loc-2", name: "Pasillo Piso 1", floor: 1, checkedAt: new Date().toISOString(), hasIncident: false },
-        { id: "loc-3", name: "Pasillo Piso 2", floor: 2, checkedAt: new Date().toISOString(), hasIncident: true },
-      ],
-    },
-  };
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, full_name, created_at")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return {
+      success: true,
+      data: (data || []).map((user) => ({
+        id: user.id,
+        email: "", // El email está en auth.users, no en profiles
+        fullName: user.full_name,
+        createdAt: user.created_at,
+      })),
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error desconocido",
+    };
+  }
 }
-
-export async function getNightlyStatsMock(): Promise<QueryResult<NightlyStatsData[]>> {
-  await new Promise((r) => setTimeout(r, 500));
-  
-  return {
-    success: true,
-    data: [
-      {
-        staffId: "user-1",
-        staffName: "Carlos Rodríguez",
-        roundName: "Ronda Nocturna Completa",
-        totalLocations: 8,
-        completedCheckins: 8,
-        compliancePercentage: 100,
-        incidentsCount: 1,
-        assignmentStatus: "completed",
-        startedAt: "2024-12-05T22:00:00Z",
-        completedAt: "2024-12-05T23:15:00Z",
-      },
-      {
-        staffId: "user-2",
-        staffName: "María González",
-        roundName: "Ronda Áreas Comunes",
-        totalLocations: 4,
-        completedCheckins: 4,
-        compliancePercentage: 100,
-        incidentsCount: 0,
-        assignmentStatus: "completed",
-        startedAt: "2024-12-05T22:30:00Z",
-        completedAt: "2024-12-05T23:00:00Z",
-      },
-      {
-        staffId: "user-3",
-        staffName: "Juan Pérez",
-        roundName: "Ronda Nocturna Completa",
-        totalLocations: 8,
-        completedCheckins: 5,
-        compliancePercentage: 62.5,
-        incidentsCount: 2,
-        assignmentStatus: "in_progress",
-        startedAt: "2024-12-05T22:15:00Z",
-        completedAt: null,
-      },
-    ],
-  };
-}
-
