@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/shared/infrastructure/auth";
 import { ShieldIcon } from "@/shared/ui/icons";
 
@@ -156,17 +157,38 @@ export default function LoginContent() {
           animation: spin 0.8s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .demo-hint { margin-top: 32px; padding-top: 24px; border-top: 1px solid #e2e8f0; text-align: center; }
-        .demo-hint p { font-size: 12px; color: #64748b; margin: 0 0 16px 0; }
+        .register-link {
+          margin-top: 24px;
+          padding-top: 24px;
+          border-top: 1px solid #e2e8f0;
+          text-align: center;
+        }
+        .register-link p {
+          font-size: 14px;
+          color: #64748b;
+          margin: 0;
+        }
+        .register-link a {
+          color: #10b981;
+          font-weight: 600;
+          text-decoration: none;
+          transition: color 0.2s;
+        }
+        .register-link a:hover {
+          color: #059669;
+          text-decoration: underline;
+        }
+        .demo-hint { margin-top: 20px; text-align: center; }
+        .demo-hint p { font-size: 11px; color: #94a3b8; margin: 0 0 12px 0; }
         .demo-accounts { display: flex; gap: 12px; justify-content: center; }
         .demo-btn {
-          padding: 10px 20px; background: #f8fafc; border: 1px solid #e2e8f0;
+          padding: 8px 16px; background: #f8fafc; border: 1px solid #e2e8f0;
           border-radius: 8px; color: #475569; font-family: inherit;
-          font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;
-          display: flex; align-items: center; gap: 8px;
+          font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;
+          display: flex; align-items: center; gap: 6px;
         }
         .demo-btn:hover { background: #f1f5f9; border-color: #cbd5e1; color: #0f172a; }
-        .demo-icon { font-size: 16px; }
+        .demo-icon { font-size: 14px; }
       `}</style>
 
       <div className="login-card">
@@ -195,8 +217,15 @@ export default function LoginContent() {
           </button>
         </form>
 
+        <div className="register-link">
+          <p>
+            Don&apos;t have an account?{" "}
+            <Link href="/register">Create one</Link>
+          </p>
+        </div>
+
         <div className="demo-hint">
-          <p>Demo accounts (create in Supabase Dashboard):</p>
+          <p>Demo accounts for testing:</p>
           <div className="demo-accounts">
             <button type="button" className="demo-btn" onClick={() => { setEmail("staff@company.com"); setPassword("demo123"); }}>
               <span className="demo-icon">👤</span><span>Staff</span>

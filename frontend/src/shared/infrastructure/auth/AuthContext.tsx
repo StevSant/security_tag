@@ -20,6 +20,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string, fullName: string) => Promise<{ error: string | null; needsConfirmation?: boolean }>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }
@@ -97,6 +98,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Sign Up
+  const signUp = async (email: string, password: string, fullName: string) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+        },
+      });
+
+      if (error) {
+        return { error: error.message };
+      }
+
+      // Si Supabase requiere confirmación de email
+      if (data.user && !data.session) {
+        return { error: null, needsConfirmation: true };
+      }
+
+      // Si el registro es inmediato (sin confirmación)
+      if (data.session) {
+        setSession(data.session);
+        setUser(data.user);
+        setRole(extractRole(data.user));
+      }
+
+      return { error: null, needsConfirmation: false };
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : "Registration error",
+      };
+    }
+  };
+
   // Sign Out
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -120,6 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading,
     isAuthenticated: !!user,
     signIn,
+    signUp,
     signOut,
     refreshSession,
   };
