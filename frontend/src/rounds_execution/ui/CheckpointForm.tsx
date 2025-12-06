@@ -60,15 +60,15 @@ export function CheckpointForm({
     const formErrors: string[] = [];
 
     if (!proofPhoto) {
-      formErrors.push("Inspection photo is required");
+      formErrors.push("La foto de inspección es obligatoria");
     }
 
     if (hasIncident) {
       if (!damagePhoto) {
-        formErrors.push("Damage photo is required when reporting an incident");
+        formErrors.push("La foto del daño es obligatoria al reportar una incidencia");
       }
       if (!damageDescription.trim()) {
-        formErrors.push("Damage description is required when reporting an incident");
+        formErrors.push("La descripción del daño es obligatoria al reportar una incidencia");
       }
     }
 
@@ -104,7 +104,7 @@ export function CheckpointForm({
       onSuccess?.();
     } else {
       setSubmitStatus("error");
-      setErrors(result.errors || ["Unknown error occurred"]);
+      setErrors(result.errors || ["Ocurrió un error inesperado"]);
     }
   };
 
