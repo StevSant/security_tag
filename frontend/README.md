@@ -1,36 +1,113 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NightGuard - Sistema de Auditoría Hotelera
 
-## Getting Started
+PWA para auditoría nocturna de hoteles con check-ins NFC y evidencia fotográfica.
 
-First, run the development server:
+## Requisitos
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Node.js 18+
+- Cuenta de Supabase
+
+## Configuración
+
+### 1. Variables de Entorno
+
+Crea un archivo `.env.local` en la carpeta `frontend/`:
+
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
+
+# Para crear usuarios (solo servidor)
+SUPABASE_SERVICE_ROLE_KEY=tu-service-role-key
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Configurar Base de Datos
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Ejecuta los scripts SQL en tu proyecto Supabase:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Schema principal**: `supabase/advanced_schema.sql`
+2. **Storage policies**: `supabase/storage_policies.sql`
+3. **Funciones RPC**: `supabase/functions/get_nightly_stats.sql`
 
-## Learn More
+### 3. Crear Usuario Admin
 
-To learn more about Next.js, take a look at the following resources:
+En Supabase Dashboard:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Ve a **Authentication** → **Users**
+2. Click en **Add user** → **Create new user**
+3. Ingresa email y contraseña
+4. En **User metadata**, agrega:
+   ```json
+   {"full_name": "Admin"}
+   ```
+5. Después de crear, edita el usuario y en **app_metadata** agrega:
+   ```json
+   {"role": "admin"}
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 4. Instalar y Ejecutar
 
-## Deploy on Vercel
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Rutas
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Ruta | Descripción |
+|------|-------------|
+| `/` | Landing page |
+| `/login` | Inicio de sesión |
+| `/dashboard/staff` | Dashboard personal del staff |
+| `/dashboard/admin` | Panel de control del administrador |
+| `/dashboard/admin/users` | Gestión de usuarios |
+
+## Roles
+
+### Staff
+- Ver sus asignaciones del día
+- Realizar check-ins con evidencia fotográfica
+- Reportar incidencias
+- Solo puede ver sus propios datos
+
+### Admin
+- Ver estadísticas de todos los usuarios
+- Crear nuevos usuarios staff
+- Asignar rondas a usuarios
+- Ver todas las incidencias
+
+## Estructura del Proyecto
+
+```
+frontend/
+├── app/                      # Next.js App Router
+│   ├── api/                  # API Routes
+│   ├── dashboard/           # Páginas de dashboard
+│   └── login/               # Página de login
+├── src/
+│   ├── admin/               # Dominio: Administración
+│   ├── dashboard/           # Dominio: Dashboard
+│   ├── rounds_execution/    # Dominio: Ejecución de rondas
+│   └── shared/              # Infraestructura compartida
+└── public/                  # Assets estáticos + PWA
+
+supabase/
+├── advanced_schema.sql      # Tablas + RLS
+├── storage_policies.sql     # Bucket + políticas
+└── functions/               # Funciones RPC
+```
+
+## Políticas RLS
+
+- **Staff**: Solo puede leer/escribir sus propios registros
+- **Admin**: Puede leer todos los registros
+- Roles basados en `app_metadata.role` del JWT
+
+## PWA
+
+La aplicación es instalable como PWA:
+- Manifest configurado
+- Service Worker para cache offline
+- Optimizada para móviles
