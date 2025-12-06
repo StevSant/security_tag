@@ -76,29 +76,12 @@ export default function LoginPage() {
     return (
       <div className="login-page">
         <style jsx>{`
-          .login-page {
-            font-family: 'JetBrains Mono', monospace;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0a0a0f 0%, #0f172a 50%, #1e1b4b 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-          .spinner {
-            width: 48px;
-            height: 48px;
-            border: 3px solid #334155;
-            border-top-color: #059669;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-          }
           @keyframes spin {
             to { transform: rotate(360deg); }
           }
         `}</style>
-        <div className="spinner" />
       </div>
-    );
+    )
   }
 
   return (

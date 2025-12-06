@@ -1,65 +1,37 @@
 "use client";
 
-import Link from "next/link";
-import { AuthGuard, useAuth } from "@/shared/infrastructure/auth";
-import { AdminDashboard } from "@/dashboard/ui/AdminDashboard";
+import dynamic from "next/dynamic";
 
-function AdminDashboardContent() {
-  const { signOut } = useAuth();
-
-  return (
-    <div style={{ position: "relative" }}>
-      {/* Header con navegación */}
+const AdminDashboardContent = dynamic(
+  () => import("./AdminDashboardContent"),
+  { 
+    ssr: false,
+    loading: () => (
       <div style={{
-        position: "fixed",
-        top: 0,
-        right: 0,
-        padding: "16px",
-        zIndex: 100,
+        minHeight: "100vh",
+        background: "linear-gradient(180deg, #0a0a0f 0%, #12121a 100%)",
         display: "flex",
-        gap: "12px",
+        alignItems: "center",
+        justifyContent: "center",
       }}>
-        <Link
-          href="/dashboard/admin/users"
-          style={{
-            padding: "8px 16px",
-            background: "rgba(139, 92, 246, 0.1)",
-            border: "1px solid rgba(139, 92, 246, 0.3)",
-            borderRadius: "8px",
-            color: "#a855f7",
-            fontFamily: "inherit",
-            fontSize: "12px",
-            textDecoration: "none",
-          }}
-        >
-          👥 Gestionar Usuarios
-        </Link>
-        <button
-          onClick={signOut}
-          style={{
-            padding: "8px 16px",
-            background: "rgba(239, 68, 68, 0.1)",
-            border: "1px solid rgba(239, 68, 68, 0.3)",
-            borderRadius: "8px",
-            color: "#fca5a5",
-            fontFamily: "inherit",
-            fontSize: "12px",
-            cursor: "pointer",
-          }}
-        >
-          Cerrar sesión
-        </button>
+        <div style={{
+          width: 48,
+          height: 48,
+          border: "3px solid #334155",
+          borderTopColor: "#8b5cf6",
+          borderRadius: "50%",
+          animation: "spin 1s linear infinite",
+        }} />
+        <style jsx>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
-      
-      <AdminDashboard />
-    </div>
-  );
-}
+    )
+  }
+);
 
 export default function AdminDashboardPage() {
-  return (
-    <AuthGuard requiredRole="admin">
-      <AdminDashboardContent />
-    </AuthGuard>
-  );
+  return <AdminDashboardContent />;
 }

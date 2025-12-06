@@ -19,15 +19,20 @@ interface SelectedLocation {
 function StaffDashboardContent() {
   const { user } = useAuth();
   const [flowStep, setFlowStep] = useState<FlowStep>("list");
-  const [selectedLocation, setSelectedLocation] = useState<SelectedLocation | null>(null);
+  const [selectedLocation, setSelectedLocation] =
+    useState<SelectedLocation | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
 
-  const handleSelectLocation = async (locationId: string, locationName: string, assignmentId: string) => {
+  const handleSelectLocation = async (
+    locationId: string,
+    locationName: string,
+    assignmentId: string
+  ) => {
     setIsLoadingLocation(true);
-    
+
     // Obtener detalles de la ubicación incluyendo el código QR esperado
     const result = await getLocationDetails(locationId);
-    
+
     if (result.success && result.data) {
       setSelectedLocation({
         id: locationId,
@@ -45,7 +50,7 @@ function StaffDashboardContent() {
       });
       setFlowStep("checkin");
     }
-    
+
     setIsLoadingLocation(false);
   };
 
@@ -93,7 +98,9 @@ function StaffDashboardContent() {
         />
         <style jsx>{`
           @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+              transform: rotate(360deg);
+            }
           }
         `}</style>
       </div>
