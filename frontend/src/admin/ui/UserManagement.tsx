@@ -22,7 +22,7 @@ export function UserManagement() {
   const [rounds, setRounds] = useState<Round[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Form states
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [email, setEmail] = useState("");
@@ -89,10 +89,10 @@ export function UserManagement() {
 
   const handleAssign = async () => {
     if (!selectedUserId || !selectedRoundId) return;
-    
+
     setIsAssigning(true);
     const result = await createAssignment(selectedUserId, selectedRoundId, "night");
-    
+
     if (result.success) {
       setShowAssignModal(false);
       setSelectedUserId(null);
@@ -100,7 +100,7 @@ export function UserManagement() {
     } else {
       alert(result.error);
     }
-    
+
     setIsAssigning(false);
   };
 
@@ -359,14 +359,14 @@ export function UserManagement() {
 
       <div className="header">
         <div>
-          <h1 className="title">👥 Gestión de Usuarios</h1>
-          <p className="subtitle">Crear y administrar cuentas de staff</p>
+          <h1 className="title">👥 Gestión de Botones</h1>
+          <p className="subtitle">Crear y administrar cuentas del personal</p>
         </div>
-        <button 
+        <button
           className="btn btn-primary"
           onClick={() => setShowCreateForm(true)}
         >
-          + Crear Usuario
+          + Crear Botón
         </button>
       </div>
 
@@ -381,7 +381,7 @@ export function UserManagement() {
         <div className="empty-state">
           <div className="empty-icon">👤</div>
           <p>No hay usuarios registrados</p>
-          <button 
+          <button
             className="btn btn-primary"
             style={{ marginTop: 16 }}
             onClick={() => setShowCreateForm(true)}
@@ -407,7 +407,7 @@ export function UserManagement() {
                 </span>
               </span>
               <div className="actions">
-                <button 
+                <button
                   className="btn btn-secondary btn-small"
                   onClick={() => {
                     setSelectedUserId(user.id);
@@ -426,8 +426,8 @@ export function UserManagement() {
       {showCreateForm && (
         <div className="modal-overlay" onClick={() => !isCreating && setShowCreateForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2 className="modal-title">Crear Usuario Staff</h2>
-            
+            <h2 className="modal-title">Crear Nuevo Botón</h2>
+
             {createSuccess ? (
               <div className="success-message">
                 ✅ Usuario creado exitosamente
@@ -479,16 +479,16 @@ export function UserManagement() {
                 )}
 
                 <div className="form-actions">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn btn-secondary"
                     onClick={() => setShowCreateForm(false)}
                     disabled={isCreating}
                   >
                     Cancelar
                   </button>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="btn btn-primary"
                     disabled={isCreating}
                   >
@@ -506,7 +506,7 @@ export function UserManagement() {
         <div className="modal-overlay" onClick={() => !isAssigning && setShowAssignModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h2 className="modal-title">Asignar Ronda</h2>
-            
+
             <div className="form-group">
               <label className="form-label">Seleccionar Ronda</label>
               <select
@@ -525,15 +525,15 @@ export function UserManagement() {
             </div>
 
             <div className="form-actions">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="btn btn-secondary"
                 onClick={() => setShowAssignModal(false)}
                 disabled={isAssigning}
               >
                 Cancelar
               </button>
-              <button 
+              <button
                 className="btn btn-primary"
                 onClick={handleAssign}
                 disabled={isAssigning || !selectedRoundId}

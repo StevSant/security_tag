@@ -9,29 +9,29 @@ interface StatusBadgeProps {
 
 const statusConfig: Record<StatusType, { color: string; bg: string; defaultLabel: string }> = {
   active: {
-    color: "#DC2626",
-    bg: "rgba(220, 38, 38, 0.1)",
-    defaultLabel: "Active",
+    color: "#F59E0B",
+    bg: "rgba(245, 158, 11, 0.1)",
+    defaultLabel: "En Progreso",
   },
   monitoring: {
-    color: "#10B981",
-    bg: "rgba(16, 185, 129, 0.1)",
-    defaultLabel: "Monitoring",
+    color: "#3B82F6",
+    bg: "rgba(59, 130, 246, 0.1)",
+    defaultLabel: "Monitoreando",
   },
   investigating: {
     color: "#F59E0B",
     bg: "rgba(245, 158, 11, 0.1)",
-    defaultLabel: "Investigating",
+    defaultLabel: "Investigando",
   },
   resolved: {
     color: "#10B981",
     bg: "rgba(16, 185, 129, 0.1)",
-    defaultLabel: "Resolved",
+    defaultLabel: "Completado",
   },
   inactive: {
     color: "#6B7280",
     bg: "rgba(107, 114, 128, 0.1)",
-    defaultLabel: "Inactive",
+    defaultLabel: "Pendiente",
   },
 };
 
@@ -77,7 +77,7 @@ interface SystemStatusBadgeProps {
 
 export function SystemStatusBadge({ operational }: SystemStatusBadgeProps) {
   const color = operational ? "#10B981" : "#EF4444";
-  const label = operational ? "Systems Operational" : "Systems Degraded";
+  const label = operational ? "Sistema Operativo" : "Sistema con Problemas";
 
   return (
     <span className="system-badge">
@@ -107,4 +107,3 @@ export function SystemStatusBadge({ operational }: SystemStatusBadgeProps) {
     </span>
   );
 }
-

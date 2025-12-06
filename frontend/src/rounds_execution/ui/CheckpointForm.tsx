@@ -60,15 +60,15 @@ export function CheckpointForm({
     const formErrors: string[] = [];
 
     if (!proofPhoto) {
-      formErrors.push("Inspection photo is required");
+      formErrors.push("La foto de inspección es obligatoria");
     }
 
     if (hasIncident) {
       if (!damagePhoto) {
-        formErrors.push("Damage photo is required when reporting an incident");
+        formErrors.push("La foto del daño es obligatoria al reportar una incidencia");
       }
       if (!damageDescription.trim()) {
-        formErrors.push("Damage description is required when reporting an incident");
+        formErrors.push("La descripción del daño es obligatoria al reportar una incidencia");
       }
     }
 
@@ -104,7 +104,7 @@ export function CheckpointForm({
       onSuccess?.();
     } else {
       setSubmitStatus("error");
-      setErrors(result.errors || ["Unknown error occurred"]);
+      setErrors(result.errors || ["Ocurrió un error inesperado"]);
     }
   };
 
@@ -467,14 +467,14 @@ export function CheckpointForm({
           <div className="success-icon">
             <CheckCircleIcon />
           </div>
-          <h3 className="success-title">Check-in Completed</h3>
-          <p className="success-subtitle">{locationName} recorded successfully</p>
+          <h3 className="success-title">¡Check-in Completado!</h3>
+          <p className="success-subtitle">{locationName} registrado correctamente</p>
           <button
             className="btn btn-primary"
             onClick={handleReset}
             style={{ marginTop: 24, width: "100%" }}
           >
-            Next Checkpoint
+            Siguiente Checkpoint
           </button>
         </div>
       ) : (
@@ -491,8 +491,8 @@ export function CheckpointForm({
           {/* Foto de Inspección (obligatoria) */}
           <div className="photo-section">
             <div className="section-label">
-              <span>📸 Inspection Photo</span>
-              <span className="required-badge">Required</span>
+              <span>📸 Foto de Inspección</span>
+              <span className="required-badge">Obligatorio</span>
             </div>
             <input
               ref={proofInputRef}
@@ -510,11 +510,11 @@ export function CheckpointForm({
               disabled={isSubmitting}
             >
               {proofPhoto ? (
-                <img src={proofPhoto} alt="Inspection photo" />
+                <img src={proofPhoto} alt="Foto de inspección" />
               ) : (
                 <>
                   <span className="camera-icon">📷</span>
-                  <span className="camera-text">Take inspection photo</span>
+                  <span className="camera-text">Tomar foto de inspección</span>
                 </>
               )}
             </button>
@@ -526,7 +526,7 @@ export function CheckpointForm({
               <div className="incident-icon">
                 <AlertTriangleIcon />
               </div>
-              <span>Report Incident</span>
+              <span>Reportar Incidencia</span>
             </div>
             <div
               className={`switch ${hasIncident ? "active" : ""}`}
@@ -541,13 +541,13 @@ export function CheckpointForm({
             <div className="damage-section">
               <div className="damage-title">
                 <span>🚨</span>
-                <span>Incident Evidence</span>
+                <span>Evidencia de Incidencia</span>
               </div>
 
               {/* Foto de Daño */}
               <div className="section-label">
-                <span>📸 Damage Photo</span>
-                <span className="required-badge">Required</span>
+                <span>📸 Foto del Daño</span>
+                <span className="required-badge">Obligatorio</span>
               </div>
               <input
                 ref={damageInputRef}
@@ -566,11 +566,11 @@ export function CheckpointForm({
                 style={{ aspectRatio: "16/9" }}
               >
                 {damagePhoto ? (
-                  <img src={damagePhoto} alt="Damage photo" />
+                  <img src={damagePhoto} alt="Foto del daño" />
                 ) : (
                   <>
                     <span className="camera-icon">🔍</span>
-                    <span className="camera-text">Photograph the damage</span>
+                    <span className="camera-text">Fotografiar el daño</span>
                   </>
                 )}
               </button>
@@ -578,7 +578,7 @@ export function CheckpointForm({
               {/* Descripción del Daño */}
               <textarea
                 className="damage-textarea"
-                placeholder="Describe the damage or incident found..."
+                placeholder="Describe el daño o incidencia encontrada..."
                 value={damageDescription}
                 onChange={(e) => setDamageDescription(e.target.value)}
                 disabled={isSubmitting}
@@ -606,7 +606,7 @@ export function CheckpointForm({
               onClick={onCancel}
               disabled={isSubmitting}
             >
-              Cancel
+              Cancelar
             </button>
             <button
               type="submit"
@@ -616,10 +616,10 @@ export function CheckpointForm({
               {isSubmitting ? (
                 <>
                   <span className="loading-spinner" />
-                  Submitting...
+                  Enviando...
                 </>
               ) : (
-                "Confirm Check-in"
+                "Confirmar Check-in"
               )}
             </button>
           </div>

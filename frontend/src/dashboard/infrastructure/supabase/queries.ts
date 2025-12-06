@@ -59,7 +59,7 @@ export async function getStaffProgress(
 ): Promise<QueryResult<StaffProgressData>> {
   try {
     const supabase = createClient();
-    
+
     const { data, error } = await supabase.rpc("get_staff_progress", {
       assignment_uuid: assignmentId,
     });
@@ -120,8 +120,8 @@ export async function getTodayAssignments(): Promise<
       success: true,
       data: (data || []).map((item: { id: string; status: string; rounds: unknown }) => {
         const rounds = item.rounds as { name: string } | { name: string }[] | null;
-        const roundName = Array.isArray(rounds) 
-          ? rounds[0]?.name 
+        const roundName = Array.isArray(rounds)
+          ? rounds[0]?.name
           : rounds?.name;
         return {
           id: item.id,
@@ -146,7 +146,7 @@ export async function getNightlyStats(
 ): Promise<QueryResult<NightlyStatsData[]>> {
   try {
     const supabase = createClient();
-    
+
     const { data, error } = await supabase.rpc("get_nightly_stats", {
       target_date: targetDate || new Date().toISOString().split("T")[0],
     });
@@ -187,7 +187,7 @@ export async function getIncidentsSummary(
 ): Promise<QueryResult<IncidentData[]>> {
   try {
     const supabase = createClient();
-    
+
     const { data, error } = await supabase.rpc("get_incidents_summary", {
       start_date: startDate,
       end_date: endDate,
@@ -243,6 +243,46 @@ export async function getStaffUsers(): Promise<
         fullName: user.full_name,
         createdAt: user.created_at,
       })),
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error desconocido",
+    };
+  }
+}
+
+/**
+ * Obtiene los detalles de una ubicación incluyendo el código QR/NFC
+ */
+export async function getLocationDetails(
+  locationId: string
+): Promise<QueryResult<{ id: string; name: string; nfcTagId: string; floor: number | null }>> {
+  try {
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from("locations")
+      .select("id, name, nfc_tag_id, floor")
+      .eq("id", locationId)
+      .single();
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    if (!data) {
+      return { success: false, error: "Ubicación no encontrada" };
+    }
+
+    return {
+      success: true,
+      data: {
+        id: data.id,
+        name: data.name,
+        nfcTagId: data.nfc_tag_id,
+        floor: data.floor,
+      },
     };
   } catch (error) {
     return {

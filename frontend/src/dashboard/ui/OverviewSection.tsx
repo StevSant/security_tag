@@ -1,38 +1,133 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { MetricCard } from "@/shared/ui/MetricCard";
 import {
   ShieldCheckIcon,
   AlertTriangleIcon,
   CheckCircleIcon,
-  XCircleIcon,
   UsersIcon,
-  MonitorIcon,
+  ClockIcon,
+  ActivityIcon,
 } from "@/shared/ui/icons";
+import { getNightlyStats, getIncidentsSummary, type NightlyStatsData } from "../infrastructure/supabase/queries";
 
-interface MetricData {
-  securityScore: number;
-  activeThreats: number;
-  blockedAttacks: number;
-  failedLogins: number;
-  activeSessions: number;
-  systemUptime: number;
+interface HotelMetrics {
+  activeStaff: number;
+  completedRounds: number;
+  pendingCheckpoints: number;
+  incidents: number;
+  averageCompliance: number;
+  totalAssignments: number;
 }
 
 interface OverviewSectionProps {
-  data?: MetricData;
+  selectedDate?: string;
 }
 
-const defaultData: MetricData = {
-  securityScore: 87,
-  activeThreats: 3,
-  blockedAttacks: 847,
-  failedLogins: 23,
-  activeSessions: 156,
-  systemUptime: 99.9,
-};
+export function OverviewSection({ selectedDate }: OverviewSectionProps) {
+  const [metrics, setMetrics] = useState<HotelMetrics | null>(null);
+  const [staffProgress, setStaffProgress] = useState<NightlyStatsData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-export function OverviewSection({ data = defaultData }: OverviewSectionProps) {
+  useEffect(() => {
+    async function loadMetrics() {
+      setIsLoading(true);
+
+      const [statsResult, incidentsResult] = await Promise.all([
+        getNightlyStats(selectedDate),
+        getIncidentsSummary(selectedDate, selectedDate),
+      ]);
+
+      if (statsResult.success && statsResult.data) {
+        const stats = statsResult.data;
+        setStaffProgress(stats);
+
+        // Calcular métricas agregadas
+        const activeStaff = stats.filter(s => s.assignmentStatus === "in_progress").length;
+        const completedRounds = stats.filter(s => s.assignmentStatus === "completed").length;
+        const totalCheckpoints = stats.reduce((sum, s) => sum + s.totalLocations, 0);
+        const completedCheckpoints = stats.reduce((sum, s) => sum + s.completedCheckins, 0);
+        const pendingCheckpoints = totalCheckpoints - completedCheckpoints;
+        const averageCompliance = stats.length > 0
+          ? Math.round(stats.reduce((sum, s) => sum + s.compliancePercentage, 0) / stats.length)
+          : 0;
+
+        setMetrics({
+          activeStaff,
+          completedRounds,
+          pendingCheckpoints,
+          incidents: incidentsResult.success ? incidentsResult.data?.length || 0 : 0,
+          averageCompliance,
+          totalAssignments: stats.length,
+        });
+      }
+
+      setIsLoading(false);
+    }
+
+    loadMetrics();
+  }, [selectedDate]);
+
+  if (isLoading) {
+    return (
+      <div className="overview-section">
+        <style jsx>{`
+          .overview-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+          }
+          .loading-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+          }
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+          @media (max-width: 1200px) {
+            .overview-section {
+              grid-template-columns: repeat(2, 1fr);
+            }
+          }
+          @media (max-width: 768px) {
+            .overview-section {
+              grid-template-columns: 1fr;
+            }
+          }
+        `}</style>
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="loading-card">
+            <div className="loading-spinner" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  const data = metrics || {
+    activeStaff: 0,
+    completedRounds: 0,
+    pendingCheckpoints: 0,
+    incidents: 0,
+    averageCompliance: 0,
+    totalAssignments: 0,
+  };
+
   return (
     <div className="overview-section">
       <style jsx>{`
@@ -56,59 +151,52 @@ export function OverviewSection({ data = defaultData }: OverviewSectionProps) {
       `}</style>
 
       <MetricCard
-        title="Security Score"
-        value={data.securityScore}
-        subtitle="Overall security posture"
+        title="Cumplimiento Promedio"
+        value={`${data.averageCompliance}%`}
+        subtitle="Rondas de hoy"
         icon={<ShieldCheckIcon />}
         iconColor="var(--color-primary)"
-        trend={{ value: 5, direction: "down" }}
       />
 
       <MetricCard
-        title="Active Threats"
-        value={data.activeThreats}
-        subtitle="Currently monitoring"
-        icon={<AlertTriangleIcon />}
+        title="Botones Activos"
+        value={data.activeStaff}
+        subtitle="En ronda actualmente"
+        icon={<ActivityIcon />}
         iconColor="var(--color-warning)"
-        trend={{ value: 2, direction: "down" }}
       />
 
       <MetricCard
-        title="Blocked Attacks"
-        value={data.blockedAttacks}
-        subtitle="Last 24 hours"
+        title="Rondas Completadas"
+        value={data.completedRounds}
+        subtitle={`de ${data.totalAssignments} asignadas`}
         icon={<CheckCircleIcon />}
         iconColor="var(--color-success)"
-        trend={{ value: 12, direction: "up" }}
       />
 
       <MetricCard
-        title="Failed Logins"
-        value={data.failedLogins}
-        subtitle="Last hour"
-        icon={<XCircleIcon />}
+        title="Incidencias"
+        value={data.incidents}
+        subtitle="Reportadas hoy"
+        icon={<AlertTriangleIcon />}
         iconColor="var(--color-danger)"
-        trend={{ value: 8, direction: "down" }}
       />
 
       <MetricCard
-        title="Active Sessions"
-        value={data.activeSessions}
-        subtitle="Current user sessions"
+        title="Checkpoints Pendientes"
+        value={data.pendingCheckpoints}
+        subtitle="Por completar"
+        icon={<ClockIcon />}
+        iconColor="var(--text-muted)"
+      />
+
+      <MetricCard
+        title="Total Asignaciones"
+        value={data.totalAssignments}
+        subtitle="Rutinas de hoy"
         icon={<UsersIcon />}
         iconColor="var(--color-info)"
-        trend={{ value: 3, direction: "up" }}
-      />
-
-      <MetricCard
-        title="System Uptime"
-        value={`${data.systemUptime}%`}
-        subtitle="Last 30 days"
-        icon={<MonitorIcon />}
-        iconColor="var(--text-primary)"
-        trend={{ value: "0.1%", direction: "up" }}
       />
     </div>
   );
 }
-

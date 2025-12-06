@@ -12,7 +12,7 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children, title, subtitle }: DashboardLayoutProps) {
-  const today = new Date().toLocaleDateString("en-US", {
+  const today = new Date().toLocaleDateString("es-ES", {
     weekday: "long",
     year: "numeric",
     month: "long",

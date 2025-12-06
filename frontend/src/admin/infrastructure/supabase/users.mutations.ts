@@ -145,3 +145,149 @@ export async function getRounds(): Promise<{
     };
   }
 }
+
+/**
+ * Obtiene todas las ubicaciones disponibles
+ */
+export async function getLocations(): Promise<{
+  success: boolean;
+  data?: Array<{ id: string; name: string; floor: number | null; building: string | null }>;
+  error?: string;
+}> {
+  try {
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from("locations")
+      .select("id, name, floor, building")
+      .eq("is_active", true)
+      .order("floor")
+      .order("name");
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data: data || [] };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error desconocido",
+    };
+  }
+}
+
+/**
+ * Obtiene detalles completos de una ronda incluyendo ubicaciones
+ */
+export async function getRoundDetails(roundId: string): Promise<{
+  success: boolean;
+  data?: {
+    id: string;
+    name: string;
+    description: string | null;
+    locationIds: string[];
+    estimatedDuration: number;
+  };
+  error?: string;
+}> {
+  try {
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from("rounds")
+      .select("id, name, description, location_ids, estimated_duration_minutes")
+      .eq("id", roundId)
+      .single();
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return {
+      success: true,
+      data: {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        locationIds: data.location_ids || [],
+        estimatedDuration: data.estimated_duration_minutes || 30,
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error desconocido",
+    };
+  }
+}
+
+/**
+ * Crea una nueva rutina personalizada
+ */
+export async function createCustomRound(
+  name: string,
+  description: string,
+  locationIds: string[],
+  estimatedDuration: number
+): Promise<{ success: boolean; roundId?: string; error?: string }> {
+  try {
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from("rounds")
+      .insert({
+        name,
+        description,
+        location_ids: locationIds,
+        estimated_duration_minutes: estimatedDuration,
+        is_active: true,
+      })
+      .select("id")
+      .single();
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, roundId: data.id };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error desconocido",
+    };
+  }
+}
+
+/**
+ * Crea una asignación con fecha personalizada
+ */
+export async function createAssignmentForDate(
+  userId: string,
+  roundId: string,
+  date: string,
+  shift: "morning" | "afternoon" | "night" = "night"
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = createClient();
+
+    const { error } = await supabase.from("daily_assignments").insert({
+      user_id: userId,
+      round_id: roundId,
+      assigned_date: date,
+      shift,
+      status: "pending",
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error desconocido",
+    };
+  }
+}
