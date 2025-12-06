@@ -56,3 +56,11 @@ function StaffDashboardContent() {
 
   return <StaffProgress onSelectLocation={handleSelectLocation} />;
 }
+
+export default function StaffDashboardPage() {
+  return (
+    <AuthGuard requiredRole="staff">
+      <StaffDashboardContent />
+    </AuthGuard>
+  );
+}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/shared/infrastructure/auth";
 import { ShieldIcon } from "@/shared/ui/icons";
 
 export default function LoginPage() {
@@ -28,30 +29,28 @@ export default function LoginPage() {
     setIsSubmitting(true);
     setError("");
 
-    // Mock login - en producción usar Supabase Auth
-    await new Promise((r) => setTimeout(r, 1000));
-
-    if (email && password) {
-      // Redirigir basado en email (mock)
-      if (email.includes("admin")) {
-        router.push("/dashboard/admin");
-      } else {
-        router.push("/dashboard/staff");
-      }
-    } else {
+    if (!email || !password) {
       setError("Please fill in all fields");
+      setIsSubmitting(false);
+      return;
     }
 
-    setIsLoading(false);
+    const result = await signIn(email, password);
+    
+    if (result.error) {
+      setError(translateError(result.error));
+      setIsSubmitting(false);
+    }
+    // La redirección se maneja en el useEffect
   };
 
   // Traducir errores de Supabase
   const translateError = (error: string): string => {
     const errorMap: Record<string, string> = {
-      "Invalid login credentials": "Credenciales incorrectas",
-      "Email not confirmed": "Email no confirmado",
-      "User not found": "Usuario no encontrado",
-      "Too many requests": "Demasiados intentos. Espera un momento.",
+      "Invalid login credentials": "Invalid credentials",
+      "Email not confirmed": "Email not confirmed",
+      "User not found": "User not found",
+      "Too many requests": "Too many attempts. Please wait.",
     };
     return errorMap[error] || error;
   };
@@ -62,9 +61,8 @@ export default function LoginPage() {
       <div className="login-page">
         <style jsx>{`
           .login-page {
-            font-family: 'JetBrains Mono', monospace;
             min-height: 100vh;
-            background: linear-gradient(135deg, #0a0a0f 0%, #0f172a 50%, #1e1b4b 100%);
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f0fdfa 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -72,13 +70,15 @@ export default function LoginPage() {
           .spinner {
             width: 48px;
             height: 48px;
-            border: 3px solid #334155;
-            border-top-color: #059669;
+            border: 3px solid var(--border-color, #e2e8f0);
+            border-top-color: var(--color-primary, #10b981);
             border-radius: 50%;
             animation: spin 1s linear infinite;
           }
           @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+              transform: rotate(360deg);
+            }
           }
         `}</style>
         <div className="spinner" />
@@ -91,7 +91,12 @@ export default function LoginPage() {
       <style jsx>{`
         .login-page {
           min-height: 100vh;
-          background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f0fdfa 100%);
+          background: linear-gradient(
+            135deg,
+            #f0fdf4 0%,
+            #ecfdf5 50%,
+            #f0fdfa 100%
+          );
           display: flex;
           align-items: center;
           justify-content: center;
@@ -122,13 +127,13 @@ export default function LoginPage() {
         .login-card {
           position: relative;
           z-index: 1;
-          background: var(--bg-card);
-          border: 1px solid var(--border-color);
+          background: white;
+          border: 1px solid #e2e8f0;
           border-radius: 16px;
           padding: 48px 40px;
           width: 100%;
           max-width: 420px;
-          box-shadow: var(--shadow-lg);
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
         }
 
         .login-header {
@@ -139,7 +144,7 @@ export default function LoginPage() {
         .login-logo {
           width: 64px;
           height: 64px;
-          background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
           border-radius: 16px;
           display: flex;
           align-items: center;
@@ -156,13 +161,13 @@ export default function LoginPage() {
         .login-title {
           font-size: 24px;
           font-weight: 700;
-          color: var(--text-primary);
+          color: #0f172a;
           margin: 0 0 8px 0;
         }
 
         .login-subtitle {
           font-size: 14px;
-          color: var(--text-muted);
+          color: #64748b;
           margin: 0;
         }
 
@@ -174,17 +179,17 @@ export default function LoginPage() {
           display: block;
           font-size: 13px;
           font-weight: 600;
-          color: var(--text-secondary);
+          color: #475569;
           margin-bottom: 8px;
         }
 
         .form-input {
           width: 100%;
           padding: 14px 16px;
-          background: var(--bg-secondary);
-          border: 1px solid var(--border-color);
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
           border-radius: 10px;
-          color: var(--text-primary);
+          color: #0f172a;
           font-family: inherit;
           font-size: 15px;
           transition: border-color 0.2s, box-shadow 0.2s;
@@ -192,12 +197,12 @@ export default function LoginPage() {
 
         .form-input:focus {
           outline: none;
-          border-color: var(--color-primary);
+          border-color: #10b981;
           box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         }
 
         .form-input::placeholder {
-          color: var(--text-muted);
+          color: #94a3b8;
         }
 
         .error-message {
@@ -205,7 +210,7 @@ export default function LoginPage() {
           border: 1px solid rgba(239, 68, 68, 0.2);
           border-radius: 8px;
           padding: 12px 16px;
-          color: var(--color-danger);
+          color: #dc2626;
           font-size: 13px;
           margin-bottom: 20px;
           text-align: center;
@@ -214,7 +219,7 @@ export default function LoginPage() {
         .submit-btn {
           width: 100%;
           padding: 14px;
-          background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
           border: none;
           border-radius: 10px;
           color: white;
@@ -257,13 +262,13 @@ export default function LoginPage() {
         .demo-hint {
           margin-top: 32px;
           padding-top: 24px;
-          border-top: 1px solid var(--border-color);
+          border-top: 1px solid #e2e8f0;
           text-align: center;
         }
 
         .demo-hint p {
           font-size: 12px;
-          color: var(--text-muted);
+          color: #64748b;
           margin: 0 0 16px 0;
         }
 
@@ -275,10 +280,10 @@ export default function LoginPage() {
 
         .demo-btn {
           padding: 10px 20px;
-          background: var(--bg-secondary);
-          border: 1px solid var(--border-color);
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
           border-radius: 8px;
-          color: var(--text-secondary);
+          color: #475569;
           font-family: inherit;
           font-size: 13px;
           font-weight: 500;
@@ -290,9 +295,9 @@ export default function LoginPage() {
         }
 
         .demo-btn:hover {
-          background: var(--bg-hover);
-          border-color: var(--border-hover);
-          color: var(--text-primary);
+          background: #f1f5f9;
+          border-color: #cbd5e1;
+          color: #0f172a;
         }
 
         .demo-icon {
@@ -305,7 +310,7 @@ export default function LoginPage() {
           <div className="login-logo">
             <ShieldIcon />
           </div>
-          <h1 className="login-title">CyberSec Control</h1>
+          <h1 className="login-title">NightGuard</h1>
           <p className="login-subtitle">Sign in to your account</p>
         </div>
 
@@ -351,7 +356,7 @@ export default function LoginPage() {
         </form>
 
         <div className="demo-hint">
-          <p>Demo accounts available:</p>
+          <p>Demo accounts (create in Supabase Dashboard):</p>
           <div className="demo-accounts">
             <button
               type="button"
