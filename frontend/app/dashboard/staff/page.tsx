@@ -1,68 +1,37 @@
 "use client";
 
-import { useState } from "react";
-import { AuthGuard, useAuth } from "@/shared/infrastructure/auth";
-import { StaffProgress } from "@/dashboard/ui/StaffProgress";
-import { CheckpointForm } from "@/rounds_execution/ui/CheckpointForm";
+import dynamic from "next/dynamic";
 
-export const dynamic = "force-dynamic";
-
-function StaffDashboardContent() {
-  const { user } = useAuth();
-  const [selectedLocation, setSelectedLocation] = useState<{
-    id: string;
-    name: string;
-    assignmentId: string;
-  } | null>(null);
-
-  const handleSelectLocation = (locationId: string, locationName: string, assignmentId: string) => {
-    setSelectedLocation({
-      id: locationId,
-      name: locationName,
-      assignmentId
-    });
-  };
-
-  const handleCheckinSuccess = () => {
-    setSelectedLocation(null);
-    // La página se recargará y mostrará el progreso actualizado
-  };
-
-  const handleCheckinCancel = () => {
-    setSelectedLocation(null);
-  };
-
-  if (selectedLocation && user) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          background: "var(--bg-secondary)",
-          padding: "40px 20px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <CheckpointForm
-          locationId={selectedLocation.id}
-          locationName={selectedLocation.name}
-          assignmentId={selectedLocation.assignmentId}
-          userId={user.id}
-          onSuccess={handleCheckinSuccess}
-          onCancel={handleCheckinCancel}
-        />
+const StaffDashboardContent = dynamic(
+  () => import("./StaffDashboardContent"),
+  { 
+    ssr: false,
+    loading: () => (
+      <div style={{
+        minHeight: "100vh",
+        background: "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}>
+        <div style={{
+          width: 48,
+          height: 48,
+          border: "3px solid #334155",
+          borderTopColor: "#10b981",
+          borderRadius: "50%",
+          animation: "spin 1s linear infinite",
+        }} />
+        <style jsx>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
-    );
+    )
   }
-
-  return <StaffProgress onSelectLocation={handleSelectLocation} />;
-}
+);
 
 export default function StaffDashboardPage() {
-  return (
-    <AuthGuard requiredRole="staff">
-      <StaffDashboardContent />
-    </AuthGuard>
-  );
+  return <StaffDashboardContent />;
 }
