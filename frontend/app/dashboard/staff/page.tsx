@@ -14,10 +14,10 @@ function StaffDashboardContent() {
   } | null>(null);
 
   const handleSelectLocation = (locationId: string, locationName: string, assignmentId: string) => {
-    setSelectedLocation({ 
-      id: locationId, 
-      name: locationName, 
-      assignmentId 
+    setSelectedLocation({
+      id: locationId,
+      name: locationName,
+      assignmentId
     });
   };
 
@@ -32,14 +32,16 @@ function StaffDashboardContent() {
 
   if (selectedLocation && user) {
     return (
-      <div style={{ 
-        minHeight: "100vh", 
-        background: "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)",
-        padding: "20px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center"
-      }}>
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "var(--bg-secondary)",
+          padding: "40px 20px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <CheckpointForm
           locationId={selectedLocation.id}
           locationName={selectedLocation.name}
@@ -53,12 +55,4 @@ function StaffDashboardContent() {
   }
 
   return <StaffProgress onSelectLocation={handleSelectLocation} />;
-}
-
-export default function StaffDashboardPage() {
-  return (
-    <AuthGuard requiredRole="staff">
-      <StaffDashboardContent />
-    </AuthGuard>
-  );
 }

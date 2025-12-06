@@ -1,40 +1,35 @@
 import type { Metadata, Viewport } from "next";
-import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
-import { Providers } from "./providers";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-mono",
-  subsets: ["latin"],
-});
-
-const spaceGrotesk = Space_Grotesk({
+const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "NightGuard - Auditoría Hotelera",
-  description: "Aplicación de auditoría hotelera con check-ins NFC y evidencia fotográfica",
+  title: "CyberSec Control - Security Operations Center",
+  description: "Security Operations Center for monitoring threats, incidents, and system status",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
-    title: "NightGuard",
+    statusBarStyle: "default",
+    title: "CyberSec Control",
   },
   formatDetection: {
     telephone: false,
   },
   openGraph: {
     type: "website",
-    title: "NightGuard - Auditoría Hotelera",
-    description: "Sistema de auditoría nocturna para hoteles",
-    siteName: "NightGuard",
+    title: "CyberSec Control - Security Operations Center",
+    description: "Real-time security monitoring and threat management",
+    siteName: "CyberSec Control",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#059669",
+  themeColor: "#10B981",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -47,15 +42,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="en">
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
-      <body
-        className={`${jetbrainsMono.variable} ${spaceGrotesk.variable} antialiased`}
-      >
-        <Providers>{children}</Providers>
+      <body className={`${plusJakartaSans.variable} antialiased`}>
+        {children}
         <script
           dangerouslySetInnerHTML={{
             __html: `

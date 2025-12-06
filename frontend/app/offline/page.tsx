@@ -1,75 +1,103 @@
 "use client";
 
+import Link from "next/link";
+import { ShieldIcon } from "@/shared/ui/icons";
+
 export default function OfflinePage() {
   return (
     <div className="offline-page">
       <style jsx>{`
         .offline-page {
-          font-family: 'JetBrains Mono', monospace;
           min-height: 100vh;
-          background: linear-gradient(135deg, #0a0a0f 0%, #0f172a 100%);
+          background: var(--bg-secondary);
           display: flex;
-          flex-direction: column;
           align-items: center;
           justify-content: center;
           padding: 24px;
+        }
+
+        .offline-card {
+          background: var(--bg-card);
+          border: 1px solid var(--border-color);
+          border-radius: 16px;
+          padding: 48px 40px;
           text-align: center;
-          color: #f1f5f9;
+          max-width: 420px;
+          width: 100%;
         }
 
-        .icon {
-          font-size: 72px;
-          margin-bottom: 24px;
-          opacity: 0.8;
+        .offline-icon {
+          width: 80px;
+          height: 80px;
+          background: rgba(107, 114, 128, 0.1);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 24px;
+          color: var(--text-muted);
         }
 
-        .title {
-          font-size: 28px;
+        .offline-icon :global(svg) {
+          width: 40px;
+          height: 40px;
+        }
+
+        .offline-title {
+          font-size: 24px;
           font-weight: 700;
+          color: var(--text-primary);
           margin: 0 0 12px 0;
-          color: #94a3b8;
         }
 
-        .message {
-          font-size: 16px;
-          color: #64748b;
-          max-width: 400px;
-          line-height: 1.6;
+        .offline-text {
+          font-size: 14px;
+          color: var(--text-muted);
           margin: 0 0 32px 0;
+          line-height: 1.6;
         }
 
         .retry-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
           padding: 14px 28px;
-          background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+          background: linear-gradient(
+            135deg,
+            var(--color-primary) 0%,
+            var(--color-primary-dark) 100%
+          );
+          color: white;
           border: none;
           border-radius: 10px;
-          color: white;
           font-family: inherit;
           font-size: 15px;
           font-weight: 600;
           cursor: pointer;
-          transition: all 0.3s;
+          transition: all 0.2s;
+          text-decoration: none;
         }
 
         .retry-btn:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 10px 30px rgba(5, 150, 105, 0.3);
+          transform: translateY(-1px);
+          box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
         }
       `}</style>
 
-      <div className="icon">📡</div>
-      <h1 className="title">Sin conexión</h1>
-      <p className="message">
-        No tienes conexión a internet. Los check-ins pendientes se sincronizarán
-        automáticamente cuando vuelvas a estar en línea.
-      </p>
-      <button
-        className="retry-btn"
-        onClick={() => window.location.reload()}
-      >
-        Reintentar
-      </button>
+      <div className="offline-card">
+        <div className="offline-icon">
+          <ShieldIcon />
+        </div>
+        <h1 className="offline-title">You&apos;re Offline</h1>
+        <p className="offline-text">
+          It looks like you&apos;ve lost your internet connection. Some features may not be
+          available until you&apos;re back online.
+        </p>
+        <Link href="/" className="retry-btn">
+          Try Again
+        </Link>
+      </div>
     </div>
   );
 }
-
