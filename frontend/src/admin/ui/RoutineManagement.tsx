@@ -83,7 +83,7 @@ export function RoutineManagement() {
     if (usersResult.success && usersResult.data) {
       setUsers(usersResult.data.filter(u => u.role === "staff"));
     }
-    
+
     setIsLoading(false);
   };
 
@@ -812,7 +812,7 @@ export function RoutineManagement() {
                     {roundDetails.description}
                   </p>
                 )}
-                
+
                 <div className="locations-section">
                   <div className="locations-header">
                     <span className="locations-title">Checkpoints en orden</span>

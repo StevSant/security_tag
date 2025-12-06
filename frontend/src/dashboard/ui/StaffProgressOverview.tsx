@@ -18,11 +18,11 @@ export function StaffProgressOverview({ selectedDate }: StaffProgressOverviewPro
     async function loadProgress() {
       setIsLoading(true);
       const result = await getNightlyStats(selectedDate);
-      
+
       if (result.success && result.data) {
         setStaffProgress(result.data);
       }
-      
+
       setIsLoading(false);
     }
 
@@ -48,9 +48,9 @@ export function StaffProgressOverview({ selectedDate }: StaffProgressOverviewPro
 
   const formatTime = (dateString: string | null) => {
     if (!dateString) return "-";
-    return new Date(dateString).toLocaleTimeString('es-ES', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return new Date(dateString).toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
@@ -237,7 +237,7 @@ export function StaffProgressOverview({ selectedDate }: StaffProgressOverviewPro
               .join('')
               .toUpperCase()
               .slice(0, 2);
-            
+
             return (
               <div key={staff.staffId} className="staff-item">
                 <div className="staff-header">
@@ -250,13 +250,13 @@ export function StaffProgressOverview({ selectedDate }: StaffProgressOverviewPro
                   </div>
                   <StatusBadge status={getStatusBadge(staff.assignmentStatus)} />
                 </div>
-                
+
                 <ProgressBar
                   label={`${staff.completedCheckins}/${staff.totalLocations} checkpoints`}
                   value={staff.compliancePercentage}
                   color={staff.compliancePercentage === 100 ? "var(--color-success)" : "var(--color-primary)"}
                 />
-                
+
                 <div className="staff-meta">
                   <div className="meta-item">
                     <span>🕐 Inicio:</span>

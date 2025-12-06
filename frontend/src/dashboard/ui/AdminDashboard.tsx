@@ -25,17 +25,17 @@ export function AdminDashboard() {
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    
+
     if (dateStr === today.toISOString().split("T")[0]) {
       return "Hoy";
     }
     if (dateStr === yesterday.toISOString().split("T")[0]) {
       return "Ayer";
     }
-    return date.toLocaleDateString('es-ES', { 
-      weekday: 'long', 
-      day: 'numeric', 
-      month: 'long' 
+    return date.toLocaleDateString('es-ES', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long'
     });
   };
 
@@ -142,7 +142,7 @@ export function AdminDashboard() {
           <div className="tab-container">
             <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
-          
+
           <div className="date-selector">
             <span className="date-label">📅</span>
             <input

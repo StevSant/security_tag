@@ -16,11 +16,11 @@ export function IncidentsSection({ selectedDate }: IncidentsSectionProps) {
     async function loadIncidents() {
       setIsLoading(true);
       const result = await getIncidentsSummary(selectedDate, selectedDate);
-      
+
       if (result.success && result.data) {
         setIncidents(result.data);
       }
-      
+
       setIsLoading(false);
     }
 
@@ -40,7 +40,7 @@ export function IncidentsSection({ selectedDate }: IncidentsSectionProps) {
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMins / 60);
-    
+
     if (diffMins < 60) return `Hace ${diffMins}m`;
     if (diffHours < 24) return `Hace ${diffHours}h`;
     return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
@@ -222,14 +222,14 @@ export function IncidentsSection({ selectedDate }: IncidentsSectionProps) {
       ) : (
         <div className="incidents-list">
           {incidents.slice(0, 5).map((incident, index) => (
-            <div 
-              key={incident.incidentId} 
+            <div
+              key={incident.incidentId}
               className="incident-card"
               style={{ borderLeftColor: getSeverityColor(index) }}
             >
               {incident.damagePhotoUrl && (
-                <img 
-                  src={incident.damagePhotoUrl} 
+                <img
+                  src={incident.damagePhotoUrl}
                   alt="Foto del incidente"
                   className="incident-photo"
                 />
@@ -243,9 +243,9 @@ export function IncidentsSection({ selectedDate }: IncidentsSectionProps) {
                 <div className="incident-meta">
                   <span className="staff-badge">👤 {incident.staffName}</span>
                   <span className="floor-badge">
-                    {incident.locationFloor === 0 
-                      ? "Planta Baja" 
-                      : incident.locationFloor < 0 
+                    {incident.locationFloor === 0
+                      ? "Planta Baja"
+                      : incident.locationFloor < 0
                         ? `Sótano ${Math.abs(incident.locationFloor)}`
                         : `Piso ${incident.locationFloor}`
                     }

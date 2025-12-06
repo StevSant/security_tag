@@ -33,7 +33,7 @@ export function OverviewSection({ selectedDate }: OverviewSectionProps) {
   useEffect(() => {
     async function loadMetrics() {
       setIsLoading(true);
-      
+
       const [statsResult, incidentsResult] = await Promise.all([
         getNightlyStats(selectedDate),
         getIncidentsSummary(selectedDate, selectedDate),

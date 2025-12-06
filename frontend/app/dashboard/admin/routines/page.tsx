@@ -6,10 +6,10 @@ import { RoutineManagement } from "@/admin/ui/RoutineManagement";
 export default function RoutinesPage() {
   return (
     <AuthGuard requiredRole="admin">
-      <div style={{ 
-        minHeight: "100vh", 
+      <div style={{
+        minHeight: "100vh",
         background: "var(--bg-secondary)",
-        paddingTop: "80px" 
+        paddingTop: "80px"
       }}>
         <RoutineManagement />
       </div>

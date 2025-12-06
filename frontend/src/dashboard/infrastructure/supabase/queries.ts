@@ -59,7 +59,7 @@ export async function getStaffProgress(
 ): Promise<QueryResult<StaffProgressData>> {
   try {
     const supabase = createClient();
-    
+
     const { data, error } = await supabase.rpc("get_staff_progress", {
       assignment_uuid: assignmentId,
     });
@@ -120,8 +120,8 @@ export async function getTodayAssignments(): Promise<
       success: true,
       data: (data || []).map((item: { id: string; status: string; rounds: unknown }) => {
         const rounds = item.rounds as { name: string } | { name: string }[] | null;
-        const roundName = Array.isArray(rounds) 
-          ? rounds[0]?.name 
+        const roundName = Array.isArray(rounds)
+          ? rounds[0]?.name
           : rounds?.name;
         return {
           id: item.id,
@@ -146,7 +146,7 @@ export async function getNightlyStats(
 ): Promise<QueryResult<NightlyStatsData[]>> {
   try {
     const supabase = createClient();
-    
+
     const { data, error } = await supabase.rpc("get_nightly_stats", {
       target_date: targetDate || new Date().toISOString().split("T")[0],
     });
@@ -187,7 +187,7 @@ export async function getIncidentsSummary(
 ): Promise<QueryResult<IncidentData[]>> {
   try {
     const supabase = createClient();
-    
+
     const { data, error } = await supabase.rpc("get_incidents_summary", {
       start_date: startDate,
       end_date: endDate,

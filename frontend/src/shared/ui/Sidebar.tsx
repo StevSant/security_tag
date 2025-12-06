@@ -61,7 +61,7 @@ const staffNavItems: NavItem[] = [
 export function Sidebar() {
   const pathname = usePathname();
   const { role, signOut } = useAuth();
-  
+
   const navItems = role === "admin" ? adminNavItems : staffNavItems;
 
   return (
@@ -240,7 +240,7 @@ export function Sidebar() {
       <nav className="nav-section">
         <ul className="nav-list">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || 
+            const isActive = pathname === item.href ||
               (item.href !== "/dashboard/admin" && item.href !== "/dashboard/staff" && pathname.startsWith(item.href));
             const Icon = item.icon;
             return (
