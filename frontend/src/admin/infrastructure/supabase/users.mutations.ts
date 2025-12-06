@@ -132,7 +132,7 @@ export async function getRounds(): Promise<{
 
     return {
       success: true,
-      data: (data || []).map((round) => ({
+      data: (data || []).map((round: { id: string; name: string; location_ids: string[] | null }) => ({
         id: round.id,
         name: round.name,
         locationCount: round.location_ids?.length || 0,
