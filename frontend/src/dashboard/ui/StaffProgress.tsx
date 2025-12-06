@@ -241,7 +241,7 @@ export function StaffProgress({ onSelectLocation }: StaffProgressProps) {
                   className="task-item"
                   onClick={() => {
                     if (task.status === "pending" || task.status === "in_progress") {
-                      onSelectLocation?.(task.id, task.name);
+                      onSelectLocation?.(task.id, task.name, "mock-assignment-id");
                     }
                   }}
                 >
