@@ -330,10 +330,10 @@ export async function fetchTaskStats(date?: string) {
 
   const stats = {
     total: data.length,
-    completed: data.filter((t) => t.status === "completed").length,
-    pending: data.filter((t) => t.status === "pending").length,
-    inProgress: data.filter((t) => t.status === "in_progress").length,
-    uniqueUsers: new Set(data.map((t) => t.user_id)).size,
+    completed: data.filter((t: { status: string }) => t.status === "completed").length,
+    pending: data.filter((t: { status: string }) => t.status === "pending").length,
+    inProgress: data.filter((t: { status: string }) => t.status === "in_progress").length,
+    uniqueUsers: new Set(data.map((t: { user_id: string }) => t.user_id)).size,
   };
 
   return {
