@@ -98,8 +98,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Sign Up
-  const signUp = async (email: string, password: string, fullName: string) => {
+  // Sign Up (solo para botones/staff)
+  const signUp = async (email: string, password: string, fullName: string, employeeId?: string) => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -107,6 +107,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         options: {
           data: {
             full_name: fullName,
+            employee_id: employeeId,
+            role: "staff", // Todos los que se registran son staff/botones
           },
         },
       });

@@ -31,7 +31,7 @@ export default function LoginContent() {
     setError("");
 
     if (!email || !password) {
-      setError("Please fill in all fields");
+      setError("Por favor completa todos los campos");
       setIsSubmitting(false);
       return;
     }
@@ -46,10 +46,10 @@ export default function LoginContent() {
 
   const translateError = (error: string): string => {
     const errorMap: Record<string, string> = {
-      "Invalid login credentials": "Invalid credentials",
-      "Email not confirmed": "Email not confirmed",
-      "User not found": "User not found",
-      "Too many requests": "Too many attempts. Please wait.",
+      "Invalid login credentials": "Credenciales inválidas",
+      "Email not confirmed": "Correo no confirmado",
+      "User not found": "Usuario no encontrado",
+      "Too many requests": "Demasiados intentos. Por favor espera.",
     };
     return errorMap[error] || error;
   };
@@ -195,42 +195,42 @@ export default function LoginContent() {
         <div className="login-header">
           <div className="login-logo"><ShieldIcon /></div>
           <h1 className="login-title">NightGuard</h1>
-          <p className="login-subtitle">Sign in to your account</p>
+          <p className="login-subtitle">Inicia sesión en tu cuenta</p>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">Email Address</label>
-            <input type="email" className="form-input" placeholder="you@company.com"
+            <label className="form-label">Correo Electrónico</label>
+            <input type="email" className="form-input" placeholder="tu@empresa.com"
               value={email} onChange={(e) => setEmail(e.target.value)}
               disabled={isSubmitting} autoComplete="email" />
           </div>
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <label className="form-label">Contraseña</label>
             <input type="password" className="form-input" placeholder="••••••••"
               value={password} onChange={(e) => setPassword(e.target.value)}
               disabled={isSubmitting} autoComplete="current-password" />
           </div>
           {error && <div className="error-message">{error}</div>}
           <button type="submit" className="submit-btn" disabled={isSubmitting}>
-            {isSubmitting ? (<><span className="loading-spinner" /><span>Signing in...</span></>) : (<span>Sign In</span>)}
+            {isSubmitting ? (<><span className="loading-spinner" /><span>Iniciando...</span></>) : (<span>Iniciar Sesión</span>)}
           </button>
         </form>
 
         <div className="register-link">
           <p>
-            Don&apos;t have an account?{" "}
-            <Link href="/register">Create one</Link>
+            ¿Eres botón y no tienes cuenta?{" "}
+            <Link href="/register">Regístrate</Link>
           </p>
         </div>
 
         <div className="demo-hint">
-          <p>Demo accounts for testing:</p>
+          <p>Cuentas de prueba:</p>
           <div className="demo-accounts">
-            <button type="button" className="demo-btn" onClick={() => { setEmail("staff@company.com"); setPassword("demo123"); }}>
-              <span className="demo-icon">👤</span><span>Staff</span>
+            <button type="button" className="demo-btn" onClick={() => { setEmail("boton@empresa.com"); setPassword("demo123"); }}>
+              <span className="demo-icon">👤</span><span>Botón</span>
             </button>
-            <button type="button" className="demo-btn" onClick={() => { setEmail("admin@company.com"); setPassword("demo123"); }}>
+            <button type="button" className="demo-btn" onClick={() => { setEmail("admin@empresa.com"); setPassword("demo123"); }}>
               <span className="demo-icon">🛡️</span><span>Admin</span>
             </button>
           </div>
