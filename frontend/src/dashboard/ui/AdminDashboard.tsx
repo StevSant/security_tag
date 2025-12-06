@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { DashboardLayout } from "@/shared/ui/DashboardLayout";
 import { TabNavigation } from "@/shared/ui/TabNavigation";
 import { OverviewSection } from "./OverviewSection";
 import { StaffProgressOverview } from "./StaffProgressOverview";
@@ -40,7 +39,7 @@ export function AdminDashboard() {
   };
 
   return (
-    <DashboardLayout title="Panel de Control" subtitle="Gestión de rondas del hotel">
+    <div className="admin-dashboard-wrapper">
       <style jsx>{`
         .dashboard-content {
           display: flex;
@@ -187,6 +186,6 @@ export function AdminDashboard() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </div>
   );
 }
