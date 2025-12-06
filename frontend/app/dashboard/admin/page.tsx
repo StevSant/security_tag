@@ -4,6 +4,8 @@ import Link from "next/link";
 import { AuthGuard, useAuth } from "@/shared/infrastructure/auth";
 import { AdminDashboard } from "@/dashboard/ui/AdminDashboard";
 
+export const dynamic = "force-dynamic";
+
 function AdminDashboardContent() {
   const { signOut } = useAuth();
 

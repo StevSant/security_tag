@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/shared/infrastructure/auth";
 import { ShieldIcon } from "@/shared/ui/icons";
 
+export const dynamic = "force-dynamic";
+
 export default function LoginPage() {
   const router = useRouter();
   const { signIn, isAuthenticated, role, isLoading } = useAuth();

@@ -5,6 +5,8 @@ import { AuthGuard, useAuth } from "@/shared/infrastructure/auth";
 import { StaffProgress } from "@/dashboard/ui/StaffProgress";
 import { CheckpointForm } from "@/rounds_execution/ui/CheckpointForm";
 
+export const dynamic = "force-dynamic";
+
 function StaffDashboardContent() {
   const { user } = useAuth();
   const [selectedLocation, setSelectedLocation] = useState<{
