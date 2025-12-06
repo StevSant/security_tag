@@ -118,11 +118,17 @@ export async function getTodayAssignments(): Promise<
 
     return {
       success: true,
-      data: (data || []).map((item) => ({
-        id: item.id,
-        roundName: (item.rounds as { name: string })?.name || "Ronda",
-        status: item.status,
-      })),
+      data: (data || []).map((item) => {
+        const rounds = item.rounds as { name: string } | { name: string }[] | null;
+        const roundName = Array.isArray(rounds) 
+          ? rounds[0]?.name 
+          : rounds?.name;
+        return {
+          id: item.id,
+          roundName: roundName || "Ronda",
+          status: item.status,
+        };
+      }),
     };
   } catch (error) {
     return {
