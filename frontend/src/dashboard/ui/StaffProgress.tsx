@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@/shared/infrastructure/auth";
 import { DashboardLayout } from "@/shared/ui/DashboardLayout";
 import { MetricCard } from "@/shared/ui/MetricCard";
 import { ProgressBar } from "@/shared/ui/ProgressBar";
@@ -33,6 +34,7 @@ const mockTasks: Task[] = [
 ];
 
 export function StaffProgress({ onSelectLocation }: StaffProgressProps) {
+  const { signOut } = useAuth();
   const [tasks] = useState<Task[]>(mockTasks);
 
   const completedTasks = tasks.filter((t) => t.status === "completed").length;
