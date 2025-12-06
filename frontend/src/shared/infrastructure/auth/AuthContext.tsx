@@ -20,7 +20,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: string | null; needsConfirmation?: boolean }>;
+  signUp: (email: string, password: string, fullName: string, employeeId?: string) => Promise<{ error: string | null; needsConfirmation?: boolean }>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }

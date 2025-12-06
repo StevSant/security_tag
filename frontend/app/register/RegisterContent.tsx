@@ -239,32 +239,52 @@ export default function RegisterContent() {
           background: white;
           border: 1px solid #e2e8f0;
           border-radius: 16px;
-          padding: 40px;
+          padding: 32px;
           width: 100%;
-          max-width: 420px;
+          max-width: 480px;
           box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
         }
-        .register-header { text-align: center; margin-bottom: 32px; }
+        .register-header { text-align: center; margin-bottom: 20px; }
         .register-logo {
           width: 64px; height: 64px;
-          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
           border-radius: 16px;
           display: flex; align-items: center; justify-content: center;
-          margin: 0 auto 20px;
+          margin: 0 auto 16px;
           color: white;
         }
-        .register-logo :global(svg) { width: 36px; height: 36px; }
-        .register-title { font-size: 24px; font-weight: 700; color: #0f172a; margin: 0 0 8px 0; }
-        .register-subtitle { font-size: 14px; color: #64748b; margin: 0; }
-        .form-group { margin-bottom: 18px; }
-        .form-label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 8px; }
+        .register-logo :global(svg) { width: 32px; height: 32px; }
+        .register-title { font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 6px 0; }
+        .register-subtitle { font-size: 13px; color: #64748b; margin: 0; }
+        .role-badge {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+          border: 1px solid #bfdbfe;
+          border-radius: 8px;
+          padding: 10px 16px;
+          margin-bottom: 20px;
+          font-size: 13px;
+          font-weight: 600;
+          color: #1e40af;
+        }
+        .role-icon { font-size: 16px; }
+        .form-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+        .form-group { margin-bottom: 14px; }
+        .form-label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px; }
         .form-input {
-          width: 100%; padding: 14px 16px;
+          width: 100%; padding: 12px 14px;
           background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
-          color: #0f172a; font-family: inherit; font-size: 15px;
+          color: #0f172a; font-family: inherit; font-size: 14px;
           transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .form-input:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
+        .form-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
         .form-input::placeholder { color: #94a3b8; }
         .password-row {
           display: grid;
@@ -273,18 +293,18 @@ export default function RegisterContent() {
         }
         .error-message {
           background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2);
-          border-radius: 8px; padding: 12px 16px; color: #dc2626;
-          font-size: 13px; margin-bottom: 18px; text-align: center;
+          border-radius: 8px; padding: 10px 14px; color: #dc2626;
+          font-size: 13px; margin-bottom: 14px; text-align: center;
         }
         .submit-btn {
-          width: 100%; padding: 14px;
-          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          width: 100%; padding: 12px;
+          background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
           border: none; border-radius: 10px; color: white;
-          font-family: inherit; font-size: 15px; font-weight: 600;
+          font-family: inherit; font-size: 14px; font-weight: 600;
           cursor: pointer; transition: all 0.2s;
           display: flex; align-items: center; justify-content: center; gap: 8px;
         }
-        .submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3); }
+        .submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3); }
         .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .loading-spinner {
           width: 18px; height: 18px;
@@ -293,67 +313,101 @@ export default function RegisterContent() {
           animation: spin 0.8s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        .info-box {
+          margin-top: 16px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 14px 16px;
+        }
+        .info-box p {
+          font-size: 12px;
+          font-weight: 600;
+          color: #475569;
+          margin: 0 0 10px 0;
+        }
+        .info-box ul {
+          margin: 0;
+          padding: 0;
+          list-style: none;
+        }
+        .info-box li {
+          font-size: 12px;
+          color: #64748b;
+          padding: 4px 0;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
         .login-link {
-          margin-top: 24px;
-          padding-top: 24px;
+          margin-top: 20px;
+          padding-top: 20px;
           border-top: 1px solid #e2e8f0;
           text-align: center;
         }
         .login-link p {
-          font-size: 14px;
+          font-size: 13px;
           color: #64748b;
           margin: 0;
         }
         .login-link a {
-          color: #10b981;
+          color: #3b82f6;
           font-weight: 600;
           text-decoration: none;
           transition: color 0.2s;
         }
         .login-link a:hover {
-          color: #059669;
-          text-decoration: underline;
-        }
-        .terms {
-          font-size: 12px;
-          color: #94a3b8;
-          text-align: center;
-          margin-top: 16px;
-          line-height: 1.5;
-        }
-        .terms a {
-          color: #64748b;
+          color: #1d4ed8;
           text-decoration: underline;
         }
       `}</style>
 
       <div className="register-card">
         <div className="register-header">
-          <div className="register-logo"><ShieldIcon /></div>
-          <h1 className="register-title">Create Account</h1>
-          <p className="register-subtitle">Join NightGuard security team</p>
+          <div className="register-logo"><GuardIcon /></div>
+          <h1 className="register-title">Registro de Botones</h1>
+          <p className="register-subtitle">Únete al equipo de seguridad NightGuard</p>
+        </div>
+
+        <div className="role-badge">
+          <span className="role-icon">🛡️</span>
+          <span>Personal de Rondas</span>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">Full Name</label>
-            <input 
-              type="text" 
-              className="form-input" 
-              placeholder="John Doe"
-              value={fullName} 
-              onChange={(e) => setFullName(e.target.value)}
-              disabled={isSubmitting} 
-              autoComplete="name" 
-            />
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Nombre Completo</label>
+              <input 
+                type="text" 
+                className="form-input" 
+                placeholder="Juan Pérez"
+                value={fullName} 
+                onChange={(e) => setFullName(e.target.value)}
+                disabled={isSubmitting} 
+                autoComplete="name" 
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">ID de Empleado</label>
+              <input 
+                type="text" 
+                className="form-input" 
+                placeholder="EMP-001"
+                value={employeeId} 
+                onChange={(e) => setEmployeeId(e.target.value)}
+                disabled={isSubmitting} 
+              />
+            </div>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Email Address</label>
+            <label className="form-label">Correo Electrónico</label>
             <input 
               type="email" 
               className="form-input" 
-              placeholder="you@company.com"
+              placeholder="tu@empresa.com"
               value={email} 
               onChange={(e) => setEmail(e.target.value)}
               disabled={isSubmitting} 
@@ -362,7 +416,7 @@ export default function RegisterContent() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <label className="form-label">Contraseña</label>
             <div className="password-row">
               <input 
                 type="password" 
@@ -376,7 +430,7 @@ export default function RegisterContent() {
               <input 
                 type="password" 
                 className="form-input" 
-                placeholder="Confirm"
+                placeholder="Confirmar"
                 value={confirmPassword} 
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={isSubmitting} 
@@ -391,27 +445,31 @@ export default function RegisterContent() {
             {isSubmitting ? (
               <>
                 <span className="loading-spinner" />
-                <span>Creating Account...</span>
+                <span>Registrando...</span>
               </>
             ) : (
               <>
                 <UserIcon />
-                <span>Create Account</span>
+                <span>Crear Cuenta</span>
               </>
             )}
           </button>
 
-          <p className="terms">
-            By creating an account, you agree to our{" "}
-            <a href="#">Terms of Service</a> and{" "}
-            <a href="#">Privacy Policy</a>
-          </p>
+          <div className="info-box">
+            <p><strong>Como Botón podrás:</strong></p>
+            <ul>
+              <li>📍 Registrar check-ins en puntos de ronda</li>
+              <li>📸 Subir fotos de inspección</li>
+              <li>⚠️ Reportar incidentes con evidencia</li>
+              <li>📊 Ver tu progreso diario</li>
+            </ul>
+          </div>
         </form>
 
         <div className="login-link">
           <p>
-            Already have an account?{" "}
-            <Link href="/login">Sign in</Link>
+            ¿Ya tienes cuenta?{" "}
+            <Link href="/login">Iniciar Sesión</Link>
           </p>
         </div>
       </div>
