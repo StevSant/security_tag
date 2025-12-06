@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@/shared/infrastructure/auth";
 import { fetchStaffProgress, fetchTodayAssignments } from "../application/get-stats.usecase";
 import type { StaffProgressData } from "../infrastructure/supabase/queries";
 
 interface StaffProgressProps {
-  onSelectLocation?: (locationId: string, locationName: string) => void;
+  onSelectLocation?: (locationId: string, locationName: string, assignmentId: string) => void;
 }
 
 export function StaffProgress({ onSelectLocation }: StaffProgressProps) {
+  const { user, signOut } = useAuth();
   const [assignments, setAssignments] = useState<Array<{ id: string; roundName: string; status: string }>>([]);
   const [selectedAssignment, setSelectedAssignment] = useState<string | null>(null);
   const [progress, setProgress] = useState<StaffProgressData | null>(null);
@@ -43,6 +45,7 @@ export function StaffProgress({ onSelectLocation }: StaffProgressProps) {
       const result = await fetchStaffProgress(selectedAssignment!);
       if (result.success && result.data) {
         setProgress(result.data);
+        setError(null);
       } else {
         setError(result.error || "Error cargando progreso");
       }
@@ -57,6 +60,10 @@ export function StaffProgress({ onSelectLocation }: StaffProgressProps) {
     return "#ef4444";
   };
 
+  const handleLogout = async () => {
+    await signOut();
+  };
+
   return (
     <div className="staff-progress">
       <style jsx>{`
@@ -69,14 +76,20 @@ export function StaffProgress({ onSelectLocation }: StaffProgressProps) {
         }
 
         .header {
-          text-align: center;
-          margin-bottom: 32px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 24px;
+        }
+
+        .header-left {
+          text-align: left;
         }
 
         .header-title {
           font-size: 24px;
           font-weight: 700;
-          margin: 0 0 8px 0;
+          margin: 0 0 4px 0;
           background: linear-gradient(135deg, #059669 0%, #10b981 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -85,8 +98,24 @@ export function StaffProgress({ onSelectLocation }: StaffProgressProps) {
 
         .header-subtitle {
           color: #64748b;
-          font-size: 14px;
+          font-size: 13px;
           margin: 0;
+        }
+
+        .logout-btn {
+          padding: 10px 16px;
+          background: rgba(239, 68, 68, 0.1);
+          border: 1px solid rgba(239, 68, 68, 0.3);
+          border-radius: 8px;
+          color: #fca5a5;
+          font-family: inherit;
+          font-size: 13px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+          background: rgba(239, 68, 68, 0.2);
         }
 
         .assignment-selector {
@@ -205,6 +234,11 @@ export function StaffProgress({ onSelectLocation }: StaffProgressProps) {
         .location-item.completed {
           border-color: #10b981;
           opacity: 0.7;
+          cursor: default;
+        }
+
+        .location-item.completed:hover {
+          transform: none;
         }
 
         .location-item.has-incident {
@@ -294,8 +328,15 @@ export function StaffProgress({ onSelectLocation }: StaffProgressProps) {
       `}</style>
 
       <div className="header">
-        <h1 className="header-title">🌙 NightGuard</h1>
-        <p className="header-subtitle">Tu progreso de auditoría</p>
+        <div className="header-left">
+          <h1 className="header-title">🌙 NightGuard</h1>
+          <p className="header-subtitle">
+            {user?.email || "Tu progreso de auditoría"}
+          </p>
+        </div>
+        <button className="logout-btn" onClick={handleLogout}>
+          Cerrar Sesión
+        </button>
       </div>
 
       {loading && !progress ? (
@@ -328,7 +369,7 @@ export function StaffProgress({ onSelectLocation }: StaffProgressProps) {
           </div>
 
           {/* Card de progreso */}
-          {progress && (
+          {progress && selectedAssignment && (
             <>
               <div className="progress-card">
                 <div className="progress-header">
@@ -366,7 +407,7 @@ export function StaffProgress({ onSelectLocation }: StaffProgressProps) {
                       <div
                         key={loc.id}
                         className="location-item"
-                        onClick={() => onSelectLocation?.(loc.id, loc.name)}
+                        onClick={() => onSelectLocation?.(loc.id, loc.name, selectedAssignment)}
                       >
                         <div className="location-info">
                           <div className="location-icon">🏨</div>
@@ -429,4 +470,3 @@ export function StaffProgress({ onSelectLocation }: StaffProgressProps) {
     </div>
   );
 }
-
