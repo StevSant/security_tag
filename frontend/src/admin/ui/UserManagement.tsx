@@ -1,11 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createUserWithRole, listAllUsers } from "../application/create-user.action";
-import {
-  assignRoundToUser,
-  getAvailableRounds,
-} from "../infrastructure/supabase/users.mutations";
+import { createStaffUser, getUsers, getRounds, createAssignment } from "../infrastructure/supabase/users.mutations";
 
 interface User {
   id: string;
@@ -18,76 +14,68 @@ interface User {
 interface Round {
   id: string;
   name: string;
+  locationCount: number;
 }
 
 export function UserManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [rounds, setRounds] = useState<Round[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Form state
+  // Form states
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newUserEmail, setNewUserEmail] = useState("");
-  const [newUserPassword, setNewUserPassword] = useState("");
-  const [newUserName, setNewUserName] = useState("");
-  const [creating, setCreating] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createSuccess, setCreateSuccess] = useState(false);
-  
-  // Assignment state
+
+  // Assignment modal
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [selectedRoundId, setSelectedRoundId] = useState("");
-  const [assignDate, setAssignDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [assigning, setAssigning] = useState(false);
-  const [assignError, setAssignError] = useState<string | null>(null);
+  const [selectedRoundId, setSelectedRoundId] = useState<string>("");
+  const [isAssigning, setIsAssigning] = useState(false);
 
   useEffect(() => {
     loadData();
   }, []);
 
-  async function loadData() {
-    setLoading(true);
+  const loadData = async () => {
+    setIsLoading(true);
     const [usersResult, roundsResult] = await Promise.all([
-      listAllUsers(),
-      getAvailableRounds(),
+      getUsers(),
+      getRounds(),
     ]);
 
     if (usersResult.success && usersResult.data) {
-      // Filtrar solo usuarios staff
-      setUsers(usersResult.data.filter(u => u.role === 'staff'));
+      setUsers(usersResult.data);
     } else {
       setError(usersResult.error || "Error cargando usuarios");
     }
-    
+
     if (roundsResult.success && roundsResult.data) {
       setRounds(roundsResult.data);
     }
-    setLoading(false);
-  }
 
-  async function handleCreateUser(e: React.FormEvent) {
+    setIsLoading(false);
+  };
+
+  const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    setCreating(true);
+    setIsCreating(true);
     setCreateError(null);
     setCreateSuccess(false);
 
-    const result = await createUserWithRole(
-      newUserEmail,
-      newUserPassword,
-      newUserName,
-      "staff"
-    );
+    const result = await createStaffUser(email, password, fullName);
 
     if (result.success) {
       setCreateSuccess(true);
-      setNewUserEmail("");
-      setNewUserPassword("");
-      setNewUserName("");
-      await loadData(); // Recargar lista
+      setEmail("");
+      setPassword("");
+      setFullName("");
+      loadData(); // Recargar lista
       setTimeout(() => {
         setShowCreateForm(false);
         setCreateSuccess(false);
@@ -95,72 +83,94 @@ export function UserManagement() {
     } else {
       setCreateError(result.error || "Error creando usuario");
     }
-    setCreating(false);
-  }
 
-  async function handleAssignRound() {
+    setIsCreating(false);
+  };
+
+  const handleAssign = async () => {
     if (!selectedUserId || !selectedRoundId) return;
     
-    setAssigning(true);
-    setAssignError(null);
+    setIsAssigning(true);
+    const result = await createAssignment(selectedUserId, selectedRoundId, "night");
     
-    const result = await assignRoundToUser(
-      selectedUserId,
-      selectedRoundId,
-      assignDate
-    );
-
     if (result.success) {
       setShowAssignModal(false);
       setSelectedUserId(null);
       setSelectedRoundId("");
     } else {
-      setAssignError(result.error || "Error asignando ronda");
+      alert(result.error);
     }
-    setAssigning(false);
-  }
+    
+    setIsAssigning(false);
+  };
 
   return (
     <div className="user-management">
       <style jsx>{`
         .user-management {
           font-family: 'JetBrains Mono', monospace;
+          padding: 24px;
+          max-width: 1000px;
+          margin: 0 auto;
         }
 
-        .section-header {
+        .header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 24px;
+          margin-bottom: 32px;
         }
 
-        .section-title {
-          font-size: 20px;
-          font-weight: 600;
+        .title {
+          font-size: 24px;
+          font-weight: 700;
           color: #f1f5f9;
           margin: 0;
         }
 
-        .create-btn {
+        .subtitle {
+          font-size: 14px;
+          color: #64748b;
+          margin: 4px 0 0 0;
+        }
+
+        .btn {
           padding: 12px 20px;
-          background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-          border: none;
-          border-radius: 8px;
-          color: white;
+          border-radius: 10px;
           font-family: inherit;
           font-size: 14px;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.2s;
+          border: none;
         }
 
-        .create-btn:hover {
+        .btn-primary {
+          background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+          color: white;
+        }
+
+        .btn-primary:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(5, 150, 105, 0.3);
+          box-shadow: 0 10px 20px rgba(5, 150, 105, 0.3);
+        }
+
+        .btn-secondary {
+          background: #334155;
+          color: #94a3b8;
+        }
+
+        .btn-secondary:hover {
+          background: #475569;
+        }
+
+        .btn-small {
+          padding: 8px 14px;
+          font-size: 12px;
         }
 
         .users-table {
-          background: #1e1e2e;
+          background: #1e293b;
           border: 1px solid #334155;
           border-radius: 12px;
           overflow: hidden;
@@ -168,8 +178,8 @@ export function UserManagement() {
 
         .table-header {
           display: grid;
-          grid-template-columns: 1fr 1fr 150px 120px;
-          padding: 14px 20px;
+          grid-template-columns: 1fr 1fr 120px 150px;
+          padding: 16px 20px;
           background: #252536;
           font-size: 11px;
           font-weight: 600;
@@ -180,7 +190,7 @@ export function UserManagement() {
 
         .table-row {
           display: grid;
-          grid-template-columns: 1fr 1fr 150px 120px;
+          grid-template-columns: 1fr 1fr 120px 150px;
           padding: 16px 20px;
           border-bottom: 1px solid #334155;
           align-items: center;
@@ -190,38 +200,14 @@ export function UserManagement() {
           border-bottom: none;
         }
 
-        .user-info {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .user-avatar {
-          width: 40px;
-          height: 40px;
-          background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-weight: 600;
-          font-size: 14px;
-        }
-
         .user-name {
           font-weight: 500;
           color: #f1f5f9;
         }
 
         .user-email {
-          font-size: 12px;
-          color: #64748b;
-        }
-
-        .user-date {
-          font-size: 13px;
           color: #94a3b8;
+          font-size: 13px;
         }
 
         .role-badge {
@@ -234,8 +220,8 @@ export function UserManagement() {
         }
 
         .role-staff {
-          background: rgba(16, 185, 129, 0.15);
-          color: #10b981;
+          background: rgba(59, 130, 246, 0.15);
+          color: #3b82f6;
         }
 
         .role-admin {
@@ -243,23 +229,11 @@ export function UserManagement() {
           color: #a855f7;
         }
 
-        .assign-btn {
-          padding: 8px 16px;
-          background: rgba(139, 92, 246, 0.1);
-          border: 1px solid rgba(139, 92, 246, 0.3);
-          border-radius: 6px;
-          color: #a855f7;
-          font-family: inherit;
-          font-size: 12px;
-          cursor: pointer;
-          transition: all 0.2s;
+        .actions {
+          display: flex;
+          gap: 8px;
         }
 
-        .assign-btn:hover {
-          background: rgba(139, 92, 246, 0.2);
-        }
-
-        /* Modal styles */
         .modal-overlay {
           position: fixed;
           top: 0;
@@ -275,23 +249,23 @@ export function UserManagement() {
         }
 
         .modal {
-          background: #1e1e2e;
+          background: #1e293b;
           border: 1px solid #334155;
           border-radius: 16px;
-          padding: 24px;
+          padding: 32px;
           width: 100%;
-          max-width: 420px;
+          max-width: 450px;
         }
 
         .modal-title {
-          font-size: 18px;
-          font-weight: 600;
+          font-size: 20px;
+          font-weight: 700;
           color: #f1f5f9;
-          margin: 0 0 20px 0;
+          margin: 0 0 24px 0;
         }
 
         .form-group {
-          margin-bottom: 16px;
+          margin-bottom: 20px;
         }
 
         .form-label {
@@ -320,50 +294,14 @@ export function UserManagement() {
           border-color: #059669;
         }
 
-        .form-select {
-          cursor: pointer;
-        }
-
-        .modal-actions {
+        .form-actions {
           display: flex;
           gap: 12px;
           margin-top: 24px;
         }
 
-        .btn {
+        .form-actions .btn {
           flex: 1;
-          padding: 12px 20px;
-          border-radius: 8px;
-          font-family: inherit;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .btn-primary {
-          background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-          border: none;
-          color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-          transform: translateY(-1px);
-        }
-
-        .btn-primary:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .btn-secondary {
-          background: transparent;
-          border: 1px solid #334155;
-          color: #94a3b8;
-        }
-
-        .btn-secondary:hover {
-          background: rgba(255, 255, 255, 0.05);
         }
 
         .error-message {
@@ -387,15 +325,20 @@ export function UserManagement() {
           text-align: center;
         }
 
-        .loading-spinner {
-          width: 18px;
-          height: 18px;
-          border: 2px solid rgba(255, 255, 255, 0.3);
-          border-top-color: white;
+        .loading {
+          text-align: center;
+          padding: 60px;
+          color: #64748b;
+        }
+
+        .spinner {
+          width: 40px;
+          height: 40px;
+          border: 3px solid #334155;
+          border-top-color: #059669;
           border-radius: 50%;
-          animation: spin 0.8s linear infinite;
-          display: inline-block;
-          margin-right: 8px;
+          animation: spin 1s linear infinite;
+          margin: 0 auto 16px;
         }
 
         @keyframes spin {
@@ -404,228 +347,198 @@ export function UserManagement() {
 
         .empty-state {
           text-align: center;
-          padding: 40px 20px;
+          padding: 60px 20px;
           color: #64748b;
         }
 
-        @media (max-width: 768px) {
-          .table-header,
-          .table-row {
-            grid-template-columns: 1fr 100px;
-          }
-          
-          .table-header > *:nth-child(2),
-          .table-row > *:nth-child(2),
-          .table-header > *:nth-child(3),
-          .table-row > *:nth-child(3) {
-            display: none;
-          }
+        .empty-icon {
+          font-size: 48px;
+          margin-bottom: 16px;
         }
       `}</style>
 
-      <div className="section-header">
-        <h2 className="section-title">👥 Gestión de Usuarios</h2>
-        <button className="create-btn" onClick={() => setShowCreateForm(true)}>
-          + Nuevo Staff
+      <div className="header">
+        <div>
+          <h1 className="title">👥 Gestión de Usuarios</h1>
+          <p className="subtitle">Crear y administrar cuentas de staff</p>
+        </div>
+        <button 
+          className="btn btn-primary"
+          onClick={() => setShowCreateForm(true)}
+        >
+          + Crear Usuario
         </button>
       </div>
 
-      {error && (
-        <div className="error-message" style={{ marginBottom: 20 }}>
-          ⚠️ {error}
-        </div>
-      )}
-
-      {loading ? (
-        <div className="empty-state">
-          <div className="loading-spinner" style={{ margin: "0 auto 16px", width: 32, height: 32 }} />
+      {isLoading ? (
+        <div className="loading">
+          <div className="spinner" />
           <p>Cargando usuarios...</p>
         </div>
+      ) : error ? (
+        <div className="error-message">{error}</div>
       ) : users.length === 0 ? (
         <div className="empty-state">
-          <p>No hay usuarios staff registrados</p>
-          <p style={{ fontSize: 13, marginTop: 8 }}>Crea el primer usuario usando el botón &quot;+ Nuevo Staff&quot;</p>
+          <div className="empty-icon">👤</div>
+          <p>No hay usuarios registrados</p>
+          <button 
+            className="btn btn-primary"
+            style={{ marginTop: 16 }}
+            onClick={() => setShowCreateForm(true)}
+          >
+            Crear primer usuario
+          </button>
         </div>
       ) : (
         <div className="users-table">
           <div className="table-header">
-            <span>Usuario</span>
+            <span>Nombre</span>
             <span>Email</span>
-            <span>Registro</span>
+            <span>Rol</span>
             <span>Acciones</span>
           </div>
           {users.map((user) => (
             <div key={user.id} className="table-row">
-              <div className="user-info">
-                <div className="user-avatar">
-                  {user.fullName.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <div className="user-name">{user.fullName}</div>
-                  <span className={`role-badge role-${user.role}`}>
-                    {user.role}
-                  </span>
-                </div>
+              <span className="user-name">{user.fullName}</span>
+              <span className="user-email">{user.email}</span>
+              <span>
+                <span className={`role-badge role-${user.role}`}>
+                  {user.role}
+                </span>
+              </span>
+              <div className="actions">
+                <button 
+                  className="btn btn-secondary btn-small"
+                  onClick={() => {
+                    setSelectedUserId(user.id);
+                    setShowAssignModal(true);
+                  }}
+                >
+                  📋 Asignar Ronda
+                </button>
               </div>
-              <div className="user-email">{user.email}</div>
-              <div className="user-date">
-                {new Date(user.createdAt).toLocaleDateString("es-ES")}
-              </div>
-              <button
-                className="assign-btn"
-                onClick={() => {
-                  setSelectedUserId(user.id);
-                  setShowAssignModal(true);
-                  setAssignError(null);
-                }}
-              >
-                Asignar Ronda
-              </button>
             </div>
           ))}
         </div>
       )}
 
-      {/* Modal crear usuario */}
+      {/* Modal Crear Usuario */}
       {showCreateForm && (
-        <div className="modal-overlay" onClick={() => setShowCreateForm(false)}>
+        <div className="modal-overlay" onClick={() => !isCreating && setShowCreateForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3 className="modal-title">Crear Nuevo Usuario Staff</h3>
+            <h2 className="modal-title">Crear Usuario Staff</h2>
             
-            {createSuccess && (
+            {createSuccess ? (
               <div className="success-message">
                 ✅ Usuario creado exitosamente
               </div>
-            )}
-            
-            {createError && (
-              <div className="error-message">⚠️ {createError}</div>
-            )}
+            ) : (
+              <form onSubmit={handleCreateUser}>
+                <div className="form-group">
+                  <label className="form-label">Nombre Completo</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Juan Pérez"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                    disabled={isCreating}
+                  />
+                </div>
 
-            <form onSubmit={handleCreateUser}>
-              <div className="form-group">
-                <label className="form-label">Nombre Completo</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="Juan Pérez"
-                  value={newUserName}
-                  onChange={(e) => setNewUserName(e.target.value)}
-                  required
-                  disabled={creating}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Correo Electrónico</label>
-                <input
-                  type="email"
-                  className="form-input"
-                  placeholder="juan@hotel.com"
-                  value={newUserEmail}
-                  onChange={(e) => setNewUserEmail(e.target.value)}
-                  required
-                  disabled={creating}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Contraseña</label>
-                <input
-                  type="password"
-                  className="form-input"
-                  placeholder="Mínimo 6 caracteres"
-                  value={newUserPassword}
-                  onChange={(e) => setNewUserPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  disabled={creating}
-                />
-              </div>
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowCreateForm(false)}
-                  disabled={creating}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={creating}
-                >
-                  {creating ? (
-                    <>
-                      <span className="loading-spinner" />
-                      Creando...
-                    </>
-                  ) : (
-                    "Crear Usuario"
-                  )}
-                </button>
-              </div>
-            </form>
+                <div className="form-group">
+                  <label className="form-label">Correo Electrónico</label>
+                  <input
+                    type="email"
+                    className="form-input"
+                    placeholder="juan@hotel.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    disabled={isCreating}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Contraseña</label>
+                  <input
+                    type="password"
+                    className="form-input"
+                    placeholder="Mínimo 6 caracteres"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    disabled={isCreating}
+                  />
+                </div>
+
+                {createError && (
+                  <div className="error-message">{createError}</div>
+                )}
+
+                <div className="form-actions">
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary"
+                    onClick={() => setShowCreateForm(false)}
+                    disabled={isCreating}
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary"
+                    disabled={isCreating}
+                  >
+                    {isCreating ? "Creando..." : "Crear Usuario"}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
 
-      {/* Modal asignar ronda */}
+      {/* Modal Asignar Ronda */}
       {showAssignModal && (
-        <div className="modal-overlay" onClick={() => setShowAssignModal(false)}>
+        <div className="modal-overlay" onClick={() => !isAssigning && setShowAssignModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3 className="modal-title">Asignar Ronda</h3>
+            <h2 className="modal-title">Asignar Ronda</h2>
             
-            {assignError && <div className="error-message">⚠️ {assignError}</div>}
-
             <div className="form-group">
-              <label className="form-label">Ronda</label>
+              <label className="form-label">Seleccionar Ronda</label>
               <select
                 className="form-select"
                 value={selectedRoundId}
                 onChange={(e) => setSelectedRoundId(e.target.value)}
-                required
+                disabled={isAssigning}
               >
-                <option value="">Seleccionar ronda...</option>
+                <option value="">-- Selecciona una ronda --</option>
                 {rounds.map((round) => (
                   <option key={round.id} value={round.id}>
-                    {round.name}
+                    {round.name} ({round.locationCount} puntos)
                   </option>
                 ))}
               </select>
             </div>
-            <div className="form-group">
-              <label className="form-label">Fecha</label>
-              <input
-                type="date"
-                className="form-input"
-                value={assignDate}
-                onChange={(e) => setAssignDate(e.target.value)}
-                required
-              />
-            </div>
-            <div className="modal-actions">
-              <button
-                type="button"
+
+            <div className="form-actions">
+              <button 
+                type="button" 
                 className="btn btn-secondary"
                 onClick={() => setShowAssignModal(false)}
-                disabled={assigning}
+                disabled={isAssigning}
               >
                 Cancelar
               </button>
-              <button
-                type="button"
+              <button 
                 className="btn btn-primary"
-                onClick={handleAssignRound}
-                disabled={assigning || !selectedRoundId}
+                onClick={handleAssign}
+                disabled={isAssigning || !selectedRoundId}
               >
-                {assigning ? (
-                  <>
-                    <span className="loading-spinner" />
-                    Asignando...
-                  </>
-                ) : (
-                  "Asignar"
-                )}
+                {isAssigning ? "Asignando..." : "Asignar"}
               </button>
             </div>
           </div>

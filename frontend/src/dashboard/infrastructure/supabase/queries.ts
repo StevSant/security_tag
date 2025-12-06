@@ -118,8 +118,8 @@ export async function getTodayAssignments(): Promise<
 
     return {
       success: true,
-      data: (data || []).map((item: { id: string; status: string; rounds: { name: string } | { name: string }[] | null }) => {
-        const rounds = item.rounds;
+      data: (data || []).map((item) => {
+        const rounds = item.rounds as { name: string } | { name: string }[] | null;
         const roundName = Array.isArray(rounds) 
           ? rounds[0]?.name 
           : rounds?.name;
@@ -221,7 +221,7 @@ export async function getIncidentsSummary(
  * [ADMIN] Obtiene lista de usuarios staff
  */
 export async function getStaffUsers(): Promise<
-  QueryResult<Array<{ id: string; fullName: string; email: string; createdAt: string }>>
+  QueryResult<Array<{ id: string; email: string; fullName: string; createdAt: string }>>
 > {
   try {
     const supabase = createClient();
@@ -237,11 +237,11 @@ export async function getStaffUsers(): Promise<
 
     return {
       success: true,
-      data: (data || []).map((item: { id: string; full_name: string; created_at: string }) => ({
-        id: item.id,
-        fullName: item.full_name,
-        email: "", // Email no está en profiles por privacidad
-        createdAt: item.created_at,
+      data: (data || []).map((user) => ({
+        id: user.id,
+        email: "", // El email está en auth.users, no en profiles
+        fullName: user.full_name,
+        createdAt: user.created_at,
       })),
     };
   } catch (error) {

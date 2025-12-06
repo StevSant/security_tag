@@ -3,7 +3,6 @@ import {
   getNightlyStats,
   getIncidentsSummary,
   getTodayAssignments,
-  getStaffUsers,
   type StaffProgressData,
   type NightlyStatsData,
   type IncidentData,
@@ -54,17 +53,6 @@ export async function fetchIncidentsSummary(
   error?: string;
 }> {
   return getIncidentsSummary(startDate, endDate);
-}
-
-/**
- * Caso de uso: [ADMIN] Obtener lista de usuarios staff
- */
-export async function fetchStaffUsers(): Promise<{
-  success: boolean;
-  data?: Array<{ id: string; fullName: string; email: string; createdAt: string }>;
-  error?: string;
-}> {
-  return getStaffUsers();
 }
 
 /**
