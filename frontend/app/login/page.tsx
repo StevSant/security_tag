@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/shared/infrastructure/auth";
 
+// Deshabilitar prerendering - usa Supabase
+export const dynamic = "force-dynamic";
+
 export default function LoginPage() {
   const router = useRouter();
   const { signIn, user, role, loading: authLoading } = useAuth();

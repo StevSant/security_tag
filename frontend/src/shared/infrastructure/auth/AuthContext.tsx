@@ -1,8 +1,8 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/shared/infrastructure/supabase/client";
-import type { User, Session } from "@supabase/supabase-js";
+import type { User, Session, SupabaseClient } from "@supabase/supabase-js";
 
 export type UserRole = "admin" | "staff" | null;
 
@@ -24,7 +24,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<UserRole>(null);
   const [loading, setLoading] = useState(true);
 
-  const supabase = createClient();
+  const supabase = useMemo(() => {
+    try {
+      return createClient();
+    } catch {
+      return null;
+    }
+  }, []) as SupabaseClient | null;
 
   // Extraer rol del usuario
   const extractRole = useCallback((user: User | null): UserRole => {
@@ -35,6 +41,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Inicializar sesión
   useEffect(() => {
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
+
     const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -67,6 +78,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Iniciar sesión
   const signIn = async (email: string, password: string) => {
+    if (!supabase) {
+      return { error: "Supabase no configurado" };
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -91,6 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Cerrar sesión
   const signOut = async () => {
+    if (!supabase) return;
     await supabase.auth.signOut();
     setSession(null);
     setUser(null);
@@ -99,6 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Refrescar sesión
   const refreshSession = async () => {
+    if (!supabase) return;
     const { data: { session } } = await supabase.auth.refreshSession();
     setSession(session);
     setUser(session?.user ?? null);

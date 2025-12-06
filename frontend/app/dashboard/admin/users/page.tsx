@@ -4,6 +4,9 @@ import Link from "next/link";
 import { AuthGuard, useAuth } from "@/shared/infrastructure/auth";
 import { UserManagement } from "@/admin/ui/UserManagement";
 
+// Deshabilitar prerendering - requiere autenticación
+export const dynamic = "force-dynamic";
+
 function UsersPageContent() {
   const { signOut } = useAuth();
 

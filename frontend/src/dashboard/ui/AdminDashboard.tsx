@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useAuth } from "@/shared/infrastructure/auth";
 import {
   fetchNightlyStats,
   fetchIncidentsSummary,
@@ -9,6 +11,7 @@ import {
 import type { NightlyStatsData, IncidentData } from "../infrastructure/supabase/queries";
 
 export function AdminDashboard() {
+  const { signOut } = useAuth();
   const [stats, setStats] = useState<NightlyStatsData[]>([]);
   const [incidents, setIncidents] = useState<IncidentData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,6 +112,44 @@ export function AdminDashboard() {
         .date-picker:focus {
           outline: none;
           border-color: #8b5cf6;
+        }
+
+        .header-actions {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .users-link {
+          padding: 10px 16px;
+          background: rgba(139, 92, 246, 0.1);
+          border: 1px solid rgba(139, 92, 246, 0.3);
+          border-radius: 8px;
+          color: #a855f7;
+          font-family: inherit;
+          font-size: 13px;
+          text-decoration: none;
+          transition: all 0.2s;
+        }
+
+        .users-link:hover {
+          background: rgba(139, 92, 246, 0.2);
+        }
+
+        .logout-btn {
+          padding: 10px 16px;
+          background: rgba(239, 68, 68, 0.1);
+          border: 1px solid rgba(239, 68, 68, 0.3);
+          border-radius: 8px;
+          color: #fca5a5;
+          font-family: inherit;
+          font-size: 13px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+          background: rgba(239, 68, 68, 0.2);
         }
 
         .summary-grid {
@@ -368,12 +409,20 @@ export function AdminDashboard() {
           <h1>👁️ Panel de Control</h1>
           <p>Monitoreo de auditorías nocturnas</p>
         </div>
-        <input
-          type="date"
-          className="date-picker"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-        />
+        <div className="header-actions">
+          <input
+            type="date"
+            className="date-picker"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+          />
+          <Link href="/dashboard/admin/users" className="users-link">
+            👥 Gestionar Staff
+          </Link>
+          <button className="logout-btn" onClick={signOut}>
+            Cerrar Sesión
+          </button>
+        </div>
       </div>
 
       {loading ? (

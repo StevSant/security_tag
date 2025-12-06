@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createUserWithRole, listAllUsers } from "../application/create-user.action";
 import {
-  createStaffUser,
-  listUsers,
   assignRoundToUser,
   getAvailableRounds,
 } from "../infrastructure/supabase/users.mutations";
@@ -44,6 +43,7 @@ export function UserManagement() {
     new Date().toISOString().split("T")[0]
   );
   const [assigning, setAssigning] = useState(false);
+  const [assignError, setAssignError] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -52,13 +52,17 @@ export function UserManagement() {
   async function loadData() {
     setLoading(true);
     const [usersResult, roundsResult] = await Promise.all([
-      listUsers(),
+      listAllUsers(),
       getAvailableRounds(),
     ]);
 
     if (usersResult.success && usersResult.data) {
-      setUsers(usersResult.data);
+      // Filtrar solo usuarios staff
+      setUsers(usersResult.data.filter(u => u.role === 'staff'));
+    } else {
+      setError(usersResult.error || "Error cargando usuarios");
     }
+    
     if (roundsResult.success && roundsResult.data) {
       setRounds(roundsResult.data);
     }
@@ -71,10 +75,11 @@ export function UserManagement() {
     setCreateError(null);
     setCreateSuccess(false);
 
-    const result = await createStaffUser(
+    const result = await createUserWithRole(
       newUserEmail,
       newUserPassword,
-      newUserName
+      newUserName,
+      "staff"
     );
 
     if (result.success) {
@@ -97,6 +102,8 @@ export function UserManagement() {
     if (!selectedUserId || !selectedRoundId) return;
     
     setAssigning(true);
+    setAssignError(null);
+    
     const result = await assignRoundToUser(
       selectedUserId,
       selectedRoundId,
@@ -108,7 +115,7 @@ export function UserManagement() {
       setSelectedUserId(null);
       setSelectedRoundId("");
     } else {
-      setError(result.error || "Error asignando ronda");
+      setAssignError(result.error || "Error asignando ronda");
     }
     setAssigning(false);
   }
@@ -161,7 +168,7 @@ export function UserManagement() {
 
         .table-header {
           display: grid;
-          grid-template-columns: 1fr 180px 120px;
+          grid-template-columns: 1fr 1fr 150px 120px;
           padding: 14px 20px;
           background: #252536;
           font-size: 11px;
@@ -173,7 +180,7 @@ export function UserManagement() {
 
         .table-row {
           display: grid;
-          grid-template-columns: 1fr 180px 120px;
+          grid-template-columns: 1fr 1fr 150px 120px;
           padding: 16px 20px;
           border-bottom: 1px solid #334155;
           align-items: center;
@@ -207,9 +214,33 @@ export function UserManagement() {
           color: #f1f5f9;
         }
 
-        .user-date {
+        .user-email {
           font-size: 12px;
           color: #64748b;
+        }
+
+        .user-date {
+          font-size: 13px;
+          color: #94a3b8;
+        }
+
+        .role-badge {
+          display: inline-block;
+          padding: 4px 10px;
+          border-radius: 12px;
+          font-size: 11px;
+          font-weight: 600;
+          text-transform: uppercase;
+        }
+
+        .role-staff {
+          background: rgba(16, 185, 129, 0.15);
+          color: #10b981;
+        }
+
+        .role-admin {
+          background: rgba(139, 92, 246, 0.15);
+          color: #a855f7;
         }
 
         .assign-btn {
@@ -376,6 +407,20 @@ export function UserManagement() {
           padding: 40px 20px;
           color: #64748b;
         }
+
+        @media (max-width: 768px) {
+          .table-header,
+          .table-row {
+            grid-template-columns: 1fr 100px;
+          }
+          
+          .table-header > *:nth-child(2),
+          .table-row > *:nth-child(2),
+          .table-header > *:nth-child(3),
+          .table-row > *:nth-child(3) {
+            display: none;
+          }
+        }
       `}</style>
 
       <div className="section-header">
@@ -385,20 +430,28 @@ export function UserManagement() {
         </button>
       </div>
 
+      {error && (
+        <div className="error-message" style={{ marginBottom: 20 }}>
+          ⚠️ {error}
+        </div>
+      )}
+
       {loading ? (
         <div className="empty-state">
-          <div className="loading-spinner" style={{ margin: "0 auto" }} />
+          <div className="loading-spinner" style={{ margin: "0 auto 16px", width: 32, height: 32 }} />
           <p>Cargando usuarios...</p>
         </div>
       ) : users.length === 0 ? (
         <div className="empty-state">
-          <p>No hay usuarios registrados</p>
+          <p>No hay usuarios staff registrados</p>
+          <p style={{ fontSize: 13, marginTop: 8 }}>Crea el primer usuario usando el botón &quot;+ Nuevo Staff&quot;</p>
         </div>
       ) : (
         <div className="users-table">
           <div className="table-header">
             <span>Usuario</span>
-            <span>Fecha de Registro</span>
+            <span>Email</span>
+            <span>Registro</span>
             <span>Acciones</span>
           </div>
           {users.map((user) => (
@@ -409,8 +462,12 @@ export function UserManagement() {
                 </div>
                 <div>
                   <div className="user-name">{user.fullName}</div>
+                  <span className={`role-badge role-${user.role}`}>
+                    {user.role}
+                  </span>
                 </div>
               </div>
+              <div className="user-email">{user.email}</div>
               <div className="user-date">
                 {new Date(user.createdAt).toLocaleDateString("es-ES")}
               </div>
@@ -419,6 +476,7 @@ export function UserManagement() {
                 onClick={() => {
                   setSelectedUserId(user.id);
                   setShowAssignModal(true);
+                  setAssignError(null);
                 }}
               >
                 Asignar Ronda
@@ -517,7 +575,7 @@ export function UserManagement() {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3 className="modal-title">Asignar Ronda</h3>
             
-            {error && <div className="error-message">⚠️ {error}</div>}
+            {assignError && <div className="error-message">⚠️ {assignError}</div>}
 
             <div className="form-group">
               <label className="form-label">Ronda</label>
@@ -576,4 +634,3 @@ export function UserManagement() {
     </div>
   );
 }
-
