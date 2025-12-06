@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { Providers } from "./providers";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-sans",
@@ -48,7 +49,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body className={`${plusJakartaSans.variable} antialiased`}>
-        {children}
+        <Providers>{children}</Providers>
         <script
           dangerouslySetInnerHTML={{
             __html: `
