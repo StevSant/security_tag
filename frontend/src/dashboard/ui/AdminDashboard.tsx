@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { DashboardLayout } from "@/shared/ui/DashboardLayout";
 import { TabNavigation } from "@/shared/ui/TabNavigation";
 import { OverviewSection } from "./OverviewSection";
 import { StaffProgressOverview } from "./StaffProgressOverview";
@@ -40,8 +39,35 @@ export function AdminDashboard() {
   };
 
   return (
-    <DashboardLayout title="Panel de Control" subtitle="Gestión de rondas del hotel">
+    <div className="admin-dashboard-wrapper">
       <style jsx>{`
+        .admin-dashboard-wrapper {
+          --bg-card: white;
+          --border-color: #e2e8f0;
+          --text-primary: #0f172a;
+          --text-secondary: #475569;
+          --text-muted: #64748b;
+          --color-primary: #10b981;
+          --bg-secondary: #f8fafc;
+        }
+
+        .page-title {
+          margin-bottom: 24px;
+        }
+
+        .page-title h1 {
+          font-size: 24px;
+          font-weight: 700;
+          color: #0f172a;
+          margin: 0 0 8px 0;
+        }
+
+        .page-title p {
+          font-size: 14px;
+          color: #64748b;
+          margin: 0;
+        }
+
         .dashboard-content {
           display: flex;
           flex-direction: column;
@@ -137,6 +163,11 @@ export function AdminDashboard() {
         }
       `}</style>
 
+      <div className="page-title">
+        <h1>Panel de Control</h1>
+        <p>Gestión y monitoreo de rondas del hotel</p>
+      </div>
+
       <div className="dashboard-content">
         <div className="header-row">
           <div className="tab-container">
@@ -187,6 +218,6 @@ export function AdminDashboard() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </div>
   );
 }
