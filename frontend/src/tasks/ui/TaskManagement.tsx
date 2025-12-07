@@ -59,6 +59,7 @@ export default function TaskManagement() {
   const [templates, setTemplates] = useState<TaskTemplate[]>([]);
   const [staffUsers, setStaffUsers] = useState<StaffUser[]>([]);
   const [assignedTasks, setAssignedTasks] = useState<StaffTask[]>([]);
+  const [allTasks, setAllTasks] = useState<StaffTask[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"templates" | "assign" | "monitor">("assign");
 
@@ -91,6 +92,13 @@ export default function TaskManagement() {
     }
   }, [selectedUser, selectedDate]);
 
+  // Cargar todas las tareas cuando cambia de tab o fecha (para monitoreo)
+  useEffect(() => {
+    if (activeTab === "monitor") {
+      loadAllTasks();
+    }
+  }, [activeTab, selectedDate]);
+
   const loadData = async () => {
     setIsLoading(true);
     const [templatesData, usersData] = await Promise.all([
@@ -107,6 +115,11 @@ export default function TaskManagement() {
     setAssignedTasks(tasks);
   };
 
+  const loadAllTasks = async () => {
+    const tasks = await fetchStaffTasks(undefined, selectedDate);
+    setAllTasks(tasks);
+  };
+
   const handleAssignDefaults = async () => {
     if (!selectedUser) {
       setMessage({ type: "error", text: "Selecciona un botón primero" });
@@ -119,6 +132,39 @@ export default function TaskManagement() {
     if (success) {
       setMessage({ type: "success", text: "Tareas predeterminadas asignadas correctamente" });
       loadAssignedTasks();
+    } else {
+      setMessage({ type: "error", text: "Error al asignar tareas" });
+    }
+    setIsSubmitting(false);
+  };
+
+  // Asignar tareas a TODOS los botones
+  const handleAssignToAll = async () => {
+    if (staffUsers.length === 0) {
+      setMessage({ type: "error", text: "No hay botones registrados" });
+      return;
+    }
+
+    if (!confirm(`¿Asignar tareas predeterminadas a ${staffUsers.length} botones para el ${selectedDate}?`)) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    let successCount = 0;
+
+    for (const user of staffUsers) {
+      const success = await assignDefaultTasksToUser(user.id, selectedDate, selectedShift);
+      if (success) successCount++;
+    }
+
+    if (successCount > 0) {
+      setMessage({ 
+        type: "success", 
+        text: `Tareas asignadas a ${successCount} de ${staffUsers.length} botones` 
+      });
+      if (selectedUser) {
+        loadAssignedTasks();
+      }
     } else {
       setMessage({ type: "error", text: "Error al asignar tareas" });
     }
@@ -273,7 +319,7 @@ export default function TaskManagement() {
               onClick={handleAssignDefaults}
               disabled={!selectedUser || isSubmitting}
             >
-              {isSubmitting ? "Asignando..." : "📋 Asignar Tareas Predeterminadas"}
+              {isSubmitting ? "Asignando..." : "📋 Asignar a Este Botón"}
             </button>
             <button
               className="btn-secondary"
@@ -282,7 +328,21 @@ export default function TaskManagement() {
             >
               <PlusIcon /> Tarea Personalizada
             </button>
+            <button
+              className="btn-all"
+              onClick={handleAssignToAll}
+              disabled={staffUsers.length === 0 || isSubmitting}
+            >
+              {isSubmitting ? "Asignando..." : `🚀 Asignar a Todos (${staffUsers.length})`}
+            </button>
           </div>
+
+          {staffUsers.length === 0 && (
+            <div className="empty-warning">
+              <span>⚠️</span>
+              <p>No hay botones registrados. Crea botones desde la sección de <strong>Usuarios</strong> o pídeles que se registren en <strong>/register</strong></p>
+            </div>
+          )}
 
           {showCustomForm && (
             <div className="custom-form">
@@ -446,39 +506,99 @@ export default function TaskManagement() {
 
       {activeTab === "monitor" && (
         <div className="monitor-section">
-          <h3>Monitoreo de Tareas del Día</h3>
-          <div className="monitor-filters">
+          <div className="monitor-header">
+            <div>
+              <h3>Monitoreo de Tareas</h3>
+              <p>Progreso de los botones para el día seleccionado</p>
+            </div>
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
+              className="date-picker"
             />
           </div>
-          
-          <div className="monitor-grid">
-            {staffUsers.map((user) => {
-              const userTasks = assignedTasks.filter((t) => t.user_id === user.id);
-              const completed = userTasks.filter((t) => t.status === "completed").length;
-              const total = userTasks.length;
-              const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-              return (
-                <div key={user.id} className="user-progress-card">
-                  <div className="user-info">
-                    <span className="avatar">{user.full_name.charAt(0)}</span>
-                    <div>
-                      <h4>{user.full_name}</h4>
-                      <span className="task-count">{completed}/{total} tareas</span>
-                    </div>
-                  </div>
-                  <div className="progress-bar">
-                    <div className="progress-fill" style={{ width: `${progress}%` }} />
-                  </div>
-                  <span className="progress-text">{progress}%</span>
-                </div>
-              );
-            })}
+          {/* Resumen general */}
+          <div className="monitor-summary">
+            <div className="summary-card">
+              <span className="summary-icon">👥</span>
+              <div>
+                <span className="summary-value">{staffUsers.length}</span>
+                <span className="summary-label">Botones</span>
+              </div>
+            </div>
+            <div className="summary-card">
+              <span className="summary-icon">📋</span>
+              <div>
+                <span className="summary-value">{allTasks.length}</span>
+                <span className="summary-label">Tareas Asignadas</span>
+              </div>
+            </div>
+            <div className="summary-card">
+              <span className="summary-icon">✅</span>
+              <div>
+                <span className="summary-value">
+                  {allTasks.filter((t) => t.status === "completed").length}
+                </span>
+                <span className="summary-label">Completadas</span>
+              </div>
+            </div>
+            <div className="summary-card">
+              <span className="summary-icon">📊</span>
+              <div>
+                <span className="summary-value">
+                  {allTasks.length > 0 
+                    ? Math.round((allTasks.filter((t) => t.status === "completed").length / allTasks.length) * 100)
+                    : 0}%
+                </span>
+                <span className="summary-label">Cumplimiento</span>
+              </div>
+            </div>
           </div>
+
+          {allTasks.length === 0 ? (
+            <div className="no-tasks-warning">
+              <span>📭</span>
+              <div>
+                <h4>Sin tareas asignadas</h4>
+                <p>No hay tareas asignadas para esta fecha. Ve a la pestaña &quot;Asignar Tareas&quot; para asignar tareas a los botones.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="monitor-grid">
+              {staffUsers.map((user) => {
+                const userTasks = allTasks.filter((t) => t.user_id === user.id);
+                const completed = userTasks.filter((t) => t.status === "completed").length;
+                const inProgress = userTasks.filter((t) => t.status === "in_progress").length;
+                const total = userTasks.length;
+                const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+                if (total === 0) return null;
+
+                return (
+                  <div key={user.id} className={`user-progress-card ${progress === 100 ? "complete" : ""}`}>
+                    <div className="user-info">
+                      <span className="avatar">{user.full_name.charAt(0)}</span>
+                      <div>
+                        <h4>{user.full_name}</h4>
+                        <span className="task-count">
+                          {completed}/{total} tareas
+                          {inProgress > 0 && <span className="in-progress-badge"> • {inProgress} en progreso</span>}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="progress-bar">
+                      <div className="progress-fill" style={{ width: `${progress}%` }} />
+                    </div>
+                    <span className={`progress-text ${progress === 100 ? "complete" : progress >= 50 ? "good" : "low"}`}>
+                      {progress}%
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -644,6 +764,57 @@ const styles = `
   .btn-primary:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+
+  .btn-all {
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-all:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  }
+
+  .btn-all:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .empty-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .empty-warning span {
+    font-size: 20px;
+  }
+
+  .empty-warning p {
+    margin: 0;
+    font-size: 13px;
+    color: #92400e;
+    line-height: 1.5;
+  }
+
+  .empty-warning strong {
+    color: #78350f;
   }
 
   .btn-secondary {
@@ -942,22 +1113,95 @@ const styles = `
   }
 
   .monitor-section h3 {
-    margin: 0 0 16px 0;
+    margin: 0 0 4px 0;
+    font-size: 18px;
+    color: #0f172a;
   }
 
-  .monitor-filters {
-    margin-bottom: 20px;
+  .monitor-section p {
+    margin: 0;
+    font-size: 13px;
+    color: #64748b;
   }
 
-  .monitor-filters input {
-    padding: 10px 12px;
+  .monitor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+  }
+
+  .date-picker {
+    padding: 10px 14px;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
+    font-size: 14px;
+  }
+
+  .monitor-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .summary-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .summary-icon {
+    font-size: 24px;
+  }
+
+  .summary-value {
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .summary-label {
+    font-size: 12px;
+    color: #64748b;
+  }
+
+  .no-tasks-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: left;
+  }
+
+  .no-tasks-warning span {
+    font-size: 32px;
+  }
+
+  .no-tasks-warning h4 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    color: #0f172a;
+  }
+
+  .no-tasks-warning p {
+    margin: 0;
+    font-size: 14px;
+    color: #64748b;
+    line-height: 1.5;
   }
 
   .monitor-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 16px;
   }
 
@@ -969,26 +1213,38 @@ const styles = `
     display: flex;
     align-items: center;
     gap: 16px;
+    transition: all 0.2s;
+  }
+
+  .user-progress-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+
+  .user-progress-card.complete {
+    background: #f0fdf4;
+    border-color: #86efac;
   }
 
   .user-info {
     display: flex;
     align-items: center;
     gap: 12px;
-    flex: 1;
+    min-width: 140px;
   }
 
   .avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 600;
     font-size: 16px;
+    flex-shrink: 0;
   }
 
   .user-info h4 {
@@ -1002,26 +1258,60 @@ const styles = `
     color: #64748b;
   }
 
+  .in-progress-badge {
+    color: #3b82f6;
+    font-weight: 500;
+  }
+
   .progress-bar {
     flex: 1;
-    height: 8px;
+    height: 10px;
     background: #e2e8f0;
-    border-radius: 4px;
+    border-radius: 5px;
     overflow: hidden;
+    min-width: 80px;
   }
 
   .progress-fill {
     height: 100%;
     background: linear-gradient(90deg, #10b981, #059669);
     transition: width 0.3s;
+    border-radius: 5px;
   }
 
   .progress-text {
-    font-size: 14px;
-    font-weight: 600;
-    color: #10b981;
-    min-width: 45px;
+    font-size: 16px;
+    font-weight: 700;
+    min-width: 50px;
     text-align: right;
   }
+
+  .progress-text.complete {
+    color: #10b981;
+  }
+
+  .progress-text.good {
+    color: #3b82f6;
+  }
+
+  .progress-text.low {
+    color: #f59e0b;
+  }
+
+  @media (max-width: 768px) {
+    .monitor-summary {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .monitor-header {
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .action-buttons {
+      flex-wrap: wrap;
+    }
+  }
 `;
+
 
