@@ -16,9 +16,17 @@ const GuardIcon = () => (
   </svg>
 );
 
+// Icono de Admin
+const AdminIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+  </svg>
+);
+
 export default function RegisterContent() {
   const router = useRouter();
   const { signUp, isAuthenticated, role, isLoading } = useAuth();
+  const [selectedRole, setSelectedRole] = useState<"staff" | "admin">("staff");
   const [fullName, setFullName] = useState("");
   const [employeeId, setEmployeeId] = useState("");
   const [email, setEmail] = useState("");
@@ -45,7 +53,11 @@ export default function RegisterContent() {
     setError("");
 
     // Validaciones
-    if (!fullName || !employeeId || !email || !password || !confirmPassword) {
+    const requiredFieldsMissing = selectedRole === "staff"
+      ? !fullName || !employeeId || !email || !password || !confirmPassword
+      : !fullName || !email || !password || !confirmPassword;
+
+    if (requiredFieldsMissing) {
       setError("Por favor completa todos los campos");
       setIsSubmitting(false);
       return;
@@ -63,7 +75,7 @@ export default function RegisterContent() {
       return;
     }
 
-    const result = await signUp(email, password, fullName, employeeId);
+    const result = await signUp(email, password, fullName, selectedRole === "staff" ? employeeId : undefined, selectedRole);
 
     if (result.error) {
       setError(translateError(result.error));
@@ -73,7 +85,7 @@ export default function RegisterContent() {
       setIsSubmitting(false);
     } else {
       // Registro exitoso sin confirmación requerida
-      router.push("/dashboard/staff");
+      router.push(selectedRole === "admin" ? "/dashboard/admin" : "/dashboard/staff");
     }
   };
 
@@ -247,30 +259,80 @@ export default function RegisterContent() {
         .register-header { text-align: center; margin-bottom: 20px; }
         .register-logo {
           width: 64px; height: 64px;
-          background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
           border-radius: 16px;
           display: flex; align-items: center; justify-content: center;
           margin: 0 auto 16px;
           color: white;
+          transition: background 0.3s;
+        }
+        .register-logo.staff {
+          background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+        .register-logo.admin {
+          background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
         }
         .register-logo :global(svg) { width: 32px; height: 32px; }
         .register-title { font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 6px 0; }
         .register-subtitle { font-size: 13px; color: #64748b; margin: 0; }
-        .role-badge {
+        .role-selector {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+          margin-bottom: 20px;
+        }
+        .role-option {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          padding: 16px 12px;
+          background: #f8fafc;
+          border: 2px solid #e2e8f0;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .role-option:hover {
+          border-color: #cbd5e1;
+          background: #f1f5f9;
+        }
+        .role-option.active.staff {
+          background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+          border-color: #3b82f6;
+        }
+        .role-option.active.admin {
+          background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+          border-color: #f59e0b;
+        }
+        .role-option-icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 8px;
-          background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-          border: 1px solid #bfdbfe;
-          border-radius: 8px;
-          padding: 10px 16px;
-          margin-bottom: 20px;
-          font-size: 13px;
-          font-weight: 600;
-          color: #1e40af;
+          color: white;
         }
-        .role-icon { font-size: 16px; }
+        .role-option-icon.staff {
+          background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+        .role-option-icon.admin {
+          background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        .role-option-icon :global(svg) {
+          width: 22px;
+          height: 22px;
+        }
+        .role-option-label {
+          font-size: 14px;
+          font-weight: 600;
+          color: #0f172a;
+        }
+        .role-option-desc {
+          font-size: 11px;
+          color: #64748b;
+          text-align: center;
+        }
         .form-row {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -284,7 +346,7 @@ export default function RegisterContent() {
           color: #0f172a; font-family: inherit; font-size: 14px;
           transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .form-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .form-input:focus { outline: none; border-color: var(--accent-color, #3b82f6); box-shadow: 0 0 0 3px var(--accent-glow, rgba(59, 130, 246, 0.1)); }
         .form-input::placeholder { color: #94a3b8; }
         .password-row {
           display: grid;
@@ -298,13 +360,20 @@ export default function RegisterContent() {
         }
         .submit-btn {
           width: 100%; padding: 12px;
-          background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
           border: none; border-radius: 10px; color: white;
           font-family: inherit; font-size: 14px; font-weight: 600;
           cursor: pointer; transition: all 0.2s;
           display: flex; align-items: center; justify-content: center; gap: 8px;
         }
-        .submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3); }
+        .submit-btn.staff {
+          background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+        .submit-btn.admin {
+          background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        .submit-btn:hover:not(:disabled) { transform: translateY(-1px); }
+        .submit-btn.staff:hover:not(:disabled) { box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3); }
+        .submit-btn.admin:hover:not(:disabled) { box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3); }
         .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .loading-spinner {
           width: 18px; height: 18px;
@@ -351,97 +420,145 @@ export default function RegisterContent() {
           margin: 0;
         }
         .login-link a {
-          color: #3b82f6;
           font-weight: 600;
           text-decoration: none;
           transition: color 0.2s;
         }
-        .login-link a:hover {
+        .login-link.staff a {
+          color: #3b82f6;
+        }
+        .login-link.staff a:hover {
           color: #1d4ed8;
+          text-decoration: underline;
+        }
+        .login-link.admin a {
+          color: #f59e0b;
+        }
+        .login-link.admin a:hover {
+          color: #d97706;
           text-decoration: underline;
         }
       `}</style>
 
       <div className="register-card">
         <div className="register-header">
-          <div className="register-logo"><GuardIcon /></div>
-          <h1 className="register-title">Registro de Botones</h1>
+          <div className={`register-logo ${selectedRole}`}>
+            {selectedRole === "staff" ? <GuardIcon /> : <AdminIcon />}
+          </div>
+          <h1 className="register-title">
+            {selectedRole === "staff" ? "Registro de Botones" : "Registro de Administrador"}
+          </h1>
           <p className="register-subtitle">Únete al equipo de seguridad NightGuard</p>
         </div>
 
-        <div className="role-badge">
-          <span className="role-icon">🛡️</span>
-          <span>Personal de Rondas</span>
+        <div className="role-selector">
+          <button
+            type="button"
+            className={`role-option ${selectedRole === "staff" ? "active staff" : ""}`}
+            onClick={() => setSelectedRole("staff")}
+          >
+            <div className="role-option-icon staff">
+              <GuardIcon />
+            </div>
+            <span className="role-option-label">Botón</span>
+            <span className="role-option-desc">Personal de rondas</span>
+          </button>
+          <button
+            type="button"
+            className={`role-option ${selectedRole === "admin" ? "active admin" : ""}`}
+            onClick={() => setSelectedRole("admin")}
+          >
+            <div className="role-option-icon admin">
+              <AdminIcon />
+            </div>
+            <span className="role-option-label">Administrador</span>
+            <span className="role-option-desc">Gestión del sistema</span>
+          </button>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="form-row">
+          {selectedRole === "staff" ? (
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Nombre Completo</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="Juan Pérez"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  disabled={isSubmitting}
+                  autoComplete="name"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">ID de Empleado</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="EMP-001"
+                  value={employeeId}
+                  onChange={(e) => setEmployeeId(e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+          ) : (
             <div className="form-group">
               <label className="form-label">Nombre Completo</label>
-              <input 
-                type="text" 
-                className="form-input" 
+              <input
+                type="text"
+                className="form-input"
                 placeholder="Juan Pérez"
-                value={fullName} 
+                value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                disabled={isSubmitting} 
-                autoComplete="name" 
+                disabled={isSubmitting}
+                autoComplete="name"
               />
             </div>
-
-            <div className="form-group">
-              <label className="form-label">ID de Empleado</label>
-              <input 
-                type="text" 
-                className="form-input" 
-                placeholder="EMP-001"
-                value={employeeId} 
-                onChange={(e) => setEmployeeId(e.target.value)}
-                disabled={isSubmitting} 
-              />
-            </div>
-          </div>
+          )}
 
           <div className="form-group">
             <label className="form-label">Correo Electrónico</label>
-            <input 
-              type="email" 
-              className="form-input" 
+            <input
+              type="email"
+              className="form-input"
               placeholder="tu@empresa.com"
-              value={email} 
+              value={email}
               onChange={(e) => setEmail(e.target.value)}
-              disabled={isSubmitting} 
-              autoComplete="email" 
+              disabled={isSubmitting}
+              autoComplete="email"
             />
           </div>
 
           <div className="form-group">
             <label className="form-label">Contraseña</label>
             <div className="password-row">
-              <input 
-                type="password" 
-                className="form-input" 
+              <input
+                type="password"
+                className="form-input"
                 placeholder="••••••••"
-                value={password} 
+                value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                disabled={isSubmitting} 
-                autoComplete="new-password" 
+                disabled={isSubmitting}
+                autoComplete="new-password"
               />
-              <input 
-                type="password" 
-                className="form-input" 
+              <input
+                type="password"
+                className="form-input"
                 placeholder="Confirmar"
-                value={confirmPassword} 
+                value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                disabled={isSubmitting} 
-                autoComplete="new-password" 
+                disabled={isSubmitting}
+                autoComplete="new-password"
               />
             </div>
           </div>
 
           {error && <div className="error-message">{error}</div>}
 
-          <button type="submit" className="submit-btn" disabled={isSubmitting}>
+          <button type="submit" className={`submit-btn ${selectedRole}`} disabled={isSubmitting}>
             {isSubmitting ? (
               <>
                 <span className="loading-spinner" />
@@ -456,17 +573,31 @@ export default function RegisterContent() {
           </button>
 
           <div className="info-box">
-            <p><strong>Como Botón podrás:</strong></p>
-            <ul>
-              <li>📍 Registrar check-ins en puntos de ronda</li>
-              <li>📸 Subir fotos de inspección</li>
-              <li>⚠️ Reportar incidentes con evidencia</li>
-              <li>📊 Ver tu progreso diario</li>
-            </ul>
+            {selectedRole === "staff" ? (
+              <>
+                <p><strong>Como Botón podrás:</strong></p>
+                <ul>
+                  <li>📍 Registrar check-ins en puntos de ronda</li>
+                  <li>📸 Subir fotos de inspección</li>
+                  <li>⚠️ Reportar incidentes con evidencia</li>
+                  <li>📊 Ver tu progreso diario</li>
+                </ul>
+              </>
+            ) : (
+              <>
+                <p><strong>Como Administrador podrás:</strong></p>
+                <ul>
+                  <li>👥 Gestionar usuarios y equipos</li>
+                  <li>📋 Crear y asignar rutinas de ronda</li>
+                  <li>📊 Ver reportes y estadísticas</li>
+                  <li>⚙️ Configurar el sistema</li>
+                </ul>
+              </>
+            )}
           </div>
         </form>
 
-        <div className="login-link">
+        <div className={`login-link ${selectedRole}`}>
           <p>
             ¿Ya tienes cuenta?{" "}
             <Link href="/login">Iniciar Sesión</Link>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/shared/infrastructure/auth";
 
 // Hotel Icon Component
@@ -296,6 +297,31 @@ export default function LoginPage() {
         .demo-icon {
           font-size: 16px;
         }
+
+        .register-link {
+          margin-top: 24px;
+          padding-top: 24px;
+          border-top: 1px solid var(--border-color);
+          text-align: center;
+        }
+
+        .register-link p {
+          font-size: 14px;
+          color: var(--text-muted);
+          margin: 0;
+        }
+
+        .register-link a {
+          color: var(--color-primary);
+          font-weight: 600;
+          text-decoration: none;
+          transition: color 0.2s;
+        }
+
+        .register-link a:hover {
+          color: var(--color-primary-dark);
+          text-decoration: underline;
+        }
       `}</style>
 
       <div className="login-card">
@@ -374,6 +400,13 @@ export default function LoginPage() {
               <span>Admin</span>
             </button>
           </div>
+        </div>
+
+        <div className="register-link">
+          <p>
+            ¿No tienes cuenta?{" "}
+            <Link href="/register">Regístrate aquí</Link>
+          </p>
         </div>
       </div>
     </div>

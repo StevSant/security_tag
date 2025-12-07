@@ -15,10 +15,15 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name TEXT NOT NULL,
+  role TEXT DEFAULT 'staff' CHECK (role IN ('admin', 'staff')),
+  employee_id TEXT,
   avatar_url TEXT,
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );
+
+-- Índice para buscar por employee_id
+CREATE INDEX IF NOT EXISTS idx_profiles_employee_id ON profiles(employee_id);
 
 -- Locations: Puntos NFC de auditoría
 CREATE TABLE IF NOT EXISTS locations (
@@ -80,12 +85,12 @@ CREATE TABLE IF NOT EXISTS checkins (
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
   -- Constraint: Si hay incidencia, debe haber foto de daño
   CONSTRAINT damage_photo_required CHECK (
-    (has_incident = false) OR 
+    (has_incident = false) OR
     (has_incident = true AND damage_photo_url IS NOT NULL)
   ),
   -- Constraint: Si hay incidencia, debe haber descripción
   CONSTRAINT damage_description_required CHECK (
-    (has_incident = false) OR 
+    (has_incident = false) OR
     (has_incident = true AND damage_description IS NOT NULL AND damage_description != '')
   )
 );
@@ -128,19 +133,42 @@ CREATE TRIGGER update_daily_assignments_updated_at
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Función para crear perfil automáticamente al registrarse
+-- También sincroniza el rol a app_metadata para que las políticas RLS funcionen
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  user_role TEXT;
 BEGIN
-  INSERT INTO public.profiles (id, full_name)
+  -- Obtener el rol del user_metadata, default 'staff'
+  user_role := COALESCE(NEW.raw_user_meta_data->>'role', 'staff');
+
+  -- Validar que el rol sea válido
+  IF user_role NOT IN ('admin', 'staff') THEN
+    user_role := 'staff';
+  END IF;
+
+  -- Crear perfil con el rol
+  INSERT INTO public.profiles (id, full_name, role, employee_id)
   VALUES (
     NEW.id,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email)
+    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email),
+    user_role,
+    NEW.raw_user_meta_data->>'employee_id'
   );
+
+  -- Sincronizar rol a app_metadata para que las políticas RLS funcionen
+  UPDATE auth.users
+  SET raw_app_meta_data =
+    COALESCE(raw_app_meta_data, '{}'::jsonb) ||
+    jsonb_build_object('role', user_role)
+  WHERE id = NEW.id;
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Trigger para crear perfil en nuevo usuario
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
@@ -291,8 +319,8 @@ INSERT INTO locations (name, description, nfc_tag_id, floor, building) VALUES
 ON CONFLICT (nfc_tag_id) DO NOTHING;
 
 -- Insertar rondas de ejemplo
-INSERT INTO rounds (name, description, location_ids, estimated_duration_minutes) 
-SELECT 
+INSERT INTO rounds (name, description, location_ids, estimated_duration_minutes)
+SELECT
   'Ronda Nocturna Completa',
   'Recorrido completo de todas las áreas durante turno nocturno',
   ARRAY(SELECT id FROM locations WHERE is_active = true ORDER BY floor, name),

@@ -20,7 +20,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string, fullName: string, employeeId?: string) => Promise<{ error: string | null; needsConfirmation?: boolean }>;
+  signUp: (email: string, password: string, fullName: string, employeeId?: string, role?: "admin" | "staff") => Promise<{ error: string | null; needsConfirmation?: boolean }>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }
@@ -35,11 +35,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const supabase = createClient();
 
-  // Extraer rol del usuario
+  // Extraer rol del usuario (buscar en app_metadata primero, luego user_metadata)
   const extractRole = useCallback((user: User | null): UserRole => {
     if (!user) return null;
-    const appMetadata = user.app_metadata;
-    return (appMetadata?.role as UserRole) || "staff";
+
+    // Primero buscar en app_metadata (establecido por el trigger o admin)
+    const appRole = user.app_metadata?.role;
+    if (appRole === 'admin' || appRole === 'staff') {
+      return appRole;
+    }
+
+    // Fallback a user_metadata (establecido durante el registro)
+    const userRole = user.user_metadata?.role;
+    if (userRole === 'admin' || userRole === 'staff') {
+      return userRole;
+    }
+
+    // Default a staff
+    return "staff";
   }, []);
 
   // Inicializar sesión
@@ -89,17 +102,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(data.session);
       setUser(data.user);
       setRole(extractRole(data.user));
-      
+
       return { error: null };
     } catch (error) {
-      return { 
-        error: error instanceof Error ? error.message : "Error de autenticación" 
+      return {
+        error: error instanceof Error ? error.message : "Error de autenticación"
       };
     }
   };
 
-  // Sign Up (solo para botones/staff)
-  const signUp = async (email: string, password: string, fullName: string, employeeId?: string) => {
+  // Sign Up (para botones/staff o admin)
+  const signUp = async (email: string, password: string, fullName: string, employeeId?: string, role: "admin" | "staff" = "staff") => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -108,7 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           data: {
             full_name: fullName,
             employee_id: employeeId,
-            role: "staff", // Todos los que se registran son staff/botones
+            role: role,
           },
         },
       });
